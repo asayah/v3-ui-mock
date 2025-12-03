@@ -7,6 +7,34 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    .nav-group {
+        margin-bottom: 1rem;
+    }
+    .nav-group-title {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        padding: 0 1.5rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .nav-group-title i {
+        font-size: 0.875rem;
+        margin-right: 1rem;
+        width: 20px;
+        text-align: center;
+    }
+    .nav-item.sub-item {
+        padding-left: 3.5rem; /* Indent sub-items */
+    }
+    .nav-group-title.active {
+        color: white;
+    }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -16,15 +44,21 @@
                 <div class="logo-main">Istio</div>
             </div>
             <nav class="nav-menu">
-                <a href="index.html" class="nav-item active">
-                    <i class="fa-solid fa-table-columns"></i> <span>Dashboard</span>
-                </a>
-                <a href="global-services.html" class="nav-item">
-                    <i class="fa-solid fa-globe"></i> <span>Global Services</span>
-                </a>
-                <a href="service-graph.html" class="nav-item">
-                    <i class="fa-solid fa-diagram-project"></i> <span>Service Graph</span>
-                </a>
+                <a href="index.html" class="nav-item active"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-arrow-down-up-across-line"></i><span>Traffic</span></div>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-globe"></i><span>Global Services</span></div>
+                    <a href="global-services.html" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-cubes"></i><span>Resources</span></div>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
+                <a href="service-graph.html" class="nav-item"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
             </nav>
             <div class="sidebar-footer">
                 <a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> <span>Settings</span></a>

@@ -8,6 +8,132 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <style>
+        :root {
+            --graph-bg: #0D1117;
+            --panel-bg: #161B22;
+            --border-color: #30363d;
+        }
+        .main-content {
+            display: flex;
+            height: calc(100vh - 60px); /* Adjust based on top-bar height */
+            padding: 0;
+            margin: 0;
+        }
+        .graph-container {
+            flex-grow: 1;
+            position: relative;
+        }
+        #cy {
+            width: 100%;
+            height: 100%;
+            background-color: var(--graph-bg);
+        }
+        .filter-sidebar {
+            width: 280px;
+            background-color: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            color: var(--text-secondary);
+        }
+        .filter-group {
+            margin-bottom: 24px;
+        }
+        .filter-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .filter-input {
+            width: 100%;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .checkbox-label input {
+            margin-right: 8px;
+            accent-color: var(--accent);
+        }
+        .details-panel {
+            position: absolute;
+            right: -400px; /* Initially hidden */
+            top: 20px;
+            bottom: 20px;
+            width: 400px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: right 0.3s ease-in-out;
+            z-index: 100;
+            padding: 20px;
+            color: var(--text-primary);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .details-panel.visible {
+            right: 20px;
+        }
+        .details-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .workload-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .workload-item {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+        .workload-item:hover {
+            border-color: var(--accent);
+        }
+        .workload-item.down {
+            border-left: 4px solid var(--color-error);
+            background-color: var(--color-error-bg);
+        }
+        .workload-name {
+            font-weight: 600;
+        }
+        .workload-details {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .graph-top-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+            display: flex;
+            gap: 12px;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -15,68 +141,77 @@
             <div class="logo-area"><div class="logo-subtitle">SOLO ENTERPRISE FOR</div><div class="logo-main">Istio</div></div>
             <nav class="nav-menu">
                 <a href="index.html" class="nav-item"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
-                <a href="global-services.html" class="nav-item"><i class="fa-solid fa-globe"></i><span>Global Services</span></a>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-arrow-down-up-across-line"></i><span>Traffic</span></div>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-globe"></i><span>Global Services</span></div>
+                    <a href="global-services.html" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-cubes"></i><span>Resources</span></div>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
                 <a href="service-graph.html" class="nav-item active"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
             </nav>
             <div class="sidebar-footer"><a href="#" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a></div>
         </aside>
 
-        <main class="main-content" style="padding: 20px;">
-            <div class="top-bar" style="margin-bottom: 10px;">
-                <div class="breadcrumbs"><i class="fa-solid fa-diagram-project"></i> &nbsp; / &nbsp; <span>Graph</span></div>
-            </div>
-            <div class="graph-controls-bar">
-                <div class="graph-left-controls">
-                    <button class="graph-btn"><i class="fa-solid fa-layer-group"></i> Clusters 2 <i class="fa-solid fa-chevron-down"></i></button>
-                    <button class="graph-btn"><i class="fa-regular fa-folder"></i> Namespaces 4 <i class="fa-solid fa-chevron-down"></i></button>
+        <div class="main-content">
+            <div class="graph-container">
+                <div class="graph-top-bar">
+                     <div class="breadcrumbs"><i class="fa-solid fa-diagram-project"></i> &nbsp; / &nbsp; <span>Graph</span></div>
                 </div>
-                <div class="graph-right-controls">
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">Last refreshed 04:21:34 PM</span>
-                    <button class="graph-btn"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
-                </div>
-            </div>
+                <div id="cy"></div>
 
-            <div id="cy"></div>
-        </main>
+            </div>
+            <aside class="filter-sidebar">
+                <div class="filter-group">
+                    <div class="filter-title">Search</div>
+                    <input type="text" id="search-input" class="filter-input" placeholder="e.g., checkout-service">
+                </div>
+                <div class="filter-group">
+                    <div class="filter-title">Clusters</div>
+                    <div id="cluster-filters"></div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-title">Namespaces</div>
+                    <div id="namespace-filters"></div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-title">App Labels</div>
+                    <div id="label-filters" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+            </aside>
+        </div>
     </div>
 
     <script>
-        // Data for Cytoscape
-        const elements = [
-            // Clusters (Compound Nodes)
-            { data: { id: 'cluster1', label: 'solo-central' } },
-            { data: { id: 'cluster2', label: 'solo-east' } },
+        const elements = {
+            nodes: [
+                // Cluster parent nodes
+                { data: { id: 'cluster-a', label: 'Cluster A' } },
+                { data: { id: 'cluster-b', label: 'Cluster B' } },
 
-            // Namespaces (Compound Nodes) inside Cluster 1
-            { data: { id: 'ns1', label: 'loadgenerator', parent: 'cluster1' } },
-            { data: { id: 'ns2', label: 'gloo-system', parent: 'cluster1' } },
-            { data: { id: 'ns3', label: 'bookinfo-front', parent: 'cluster1' } },
-            { data: { id: 'ns4', label: 'bookinfo-back', parent: 'cluster1' } },
-            // Namespaces inside Cluster 2
-            { data: { id: 'ns5', label: 'bookinfo-back-east', parent: 'cluster2' } },
-
-            // Workload Nodes
-            { data: { id: 'bombardier', label: 'bombardier', parent: 'ns1', type: 'workload' } },
-            { data: { id: 'ingress', label: 'ingress-gateway', parent: 'ns2', type: 'gateway' } },
-            { data: { id: 'productpage', label: 'productpage-v1', parent: 'ns3', type: 'workload' } },
-            { data: { id: 'reviews1', label: 'reviews-v1', parent: 'ns4', type: 'workload' } },
-            { data: { id: 'reviews2', label: 'reviews-v2', parent: 'ns4', type: 'workload' } },
-            { data: { id: 'reviews3', label: 'reviews-v3', parent: 'ns4', type: 'workload' } },
-            { data: { id: 'ratings', label: 'ratings-v1', parent: 'ns4', type: 'workload' } },
-            { data: { id: 'details', label: 'details-v1', parent: 'ns5', type: 'workload' } },
-
-            // Edges
-            { data: { source: 'bombardier', target: 'productpage' } },
-            { data: { source: 'ingress', target: 'productpage' } },
-            { data: { source: 'productpage', target: 'reviews1' } },
-            { data: { source: 'productpage', target: 'reviews2' } },
-            { data: { source: 'productpage', target: 'reviews3' } },
-            { data: { source: 'reviews1', target: 'ratings' } },
-            { data: { source: 'reviews2', target: 'ratings' } },
-            { data: { source: 'reviews3', target: 'ratings' } },
-            { data: { source: 'reviews3', target: 'details' } } // Cross cluster
-        ];
-
+                // Simplified Service nodes
+                { data: { id: 'frontend-app', label: 'Frontend App', type: 'webapp', parent: 'cluster-a' } },
+                { data: { id: 'payment-service', label: 'Payment Service', type: 'service', parent: 'cluster-a' } },
+                { data: { id: 'checkout-service', label: 'Checkout Service', type: 'service-failover', parent: 'cluster-a', 
+                    workloads: [
+                        { id: 'checkout-w1', name: 'checkout-v1-pod1', parent: 'cluster-a', status: 'down'}, 
+                        { id: 'checkout-w2', name: 'checkout-v1-pod2', parent: 'cluster-a', status: 'down'},
+                        { id: 'checkout-w3', name: 'checkout-v2-pod1', parent: 'cluster-b', status: 'up'}
+                    ] 
+                } },
+            ],
+            edges: [
+                { data: { source: 'frontend-app', target: 'checkout-service' } },
+                { data: { source: 'payment-service', target: 'checkout-service' } },
+                { data: { source: 'checkout-service', target: 'payment-service' } },
+            ]
+        };
         var cy = cytoscape({
             container: document.getElementById('cy'),
             elements: elements,
@@ -84,84 +219,195 @@
                 {
                     selector: 'node',
                     style: {
-                        'background-color': '#1f2937',
-                        'border-width': 1,
-                        'border-color': '#374151',
+                        'background-color': '#2B313C',
+                        'border-width': 2,
+                        'border-color': '#58A6FF',
                         'label': 'data(label)',
-                        'color': '#9ca3af',
-                        'font-size': 10,
+                        'color': '#C9D1D9',
+                        'font-size': 14,
                         'text-valign': 'bottom',
-                        'text-margin-y': 5
+                        'text-margin-y': 8,
+                        'width': 50,
+                        'height': 50,
                     }
                 },
-                // Cluster Styling (Outer Box)
                 {
-                    selector: '#cluster1, #cluster2',
+                    selector: ':parent',
                     style: {
-                        'background-color': 'rgba(19, 20, 31, 0.4)',
-                        'border-width': 1,
-                        'border-color': '#3f3f46',
-                        'shape': 'roundrectangle',
+                        'background-color': '#161B22',
+                        'border-color': '#30363d',
                         'label': 'data(label)',
                         'text-valign': 'top',
                         'text-halign': 'center',
-                        'color': '#ffffff',
+                        'color': '#C9D1D9',
+                        'font-size': 18,
                         'font-weight': 'bold',
-                        'font-size': 12,
-                        'padding': 20
+                        'padding': '10px'
                     }
                 },
-                // Namespace Styling (Inner Box)
                 {
-                    selector: '#ns1, #ns2, #ns3, #ns4, #ns5',
+                    selector: '[type = "service-failover"]',
                     style: {
-                        'background-color': 'rgba(0,0,0,0.2)',
-                        'border-width': 1,
-                        'border-style': 'dashed',
-                        'border-color': '#4b5563',
-                        'label': 'data(label)',
-                        'color': '#6b7280',
-                        'font-size': 9,
-                        'text-valign': 'top'
+                        'border-color': '#F59E0B', // Yellow
                     }
                 },
-                // Workload Nodes (Actual Services)
                 {
-                    selector: '[type = "workload"], [type = "gateway"]',
+                    selector: '.workload-node',
                     style: {
                         'width': 30,
                         'height': 30,
-                        'background-color': '#13141f',
-                        'border-width': 1,
-                        'border-color': '#4287f5', /* Accent Color */
-                        'color': '#e5e7eb'
+                        'font-size': 10,
+                        'text-margin-y': 4,
                     }
                 },
                 {
-                    selector: '[type = "gateway"]',
+                    selector: '.workload-up',
                     style: {
-                        'shape': 'diamond',
-                        'border-color': '#10b981' /* Green for gateway */
+                        'background-color': '#238636',
+                        'border-color': '#388E3C',
                     }
                 },
-                // Edges
+                {
+                    selector: '.workload-down',
+                    style: {
+                        'background-color': '#DA3633',
+                        'border-color': '#C93C37',
+                    }
+                },
                 {
                     selector: 'edge',
                     style: {
                         'width': 2,
-                        'line-color': '#10b981', /* Green traffic */
-                        'target-arrow-color': '#10b981',
+                        'line-color': '#484F58',
+                        'target-arrow-color': '#484F58',
                         'target-arrow-shape': 'triangle',
                         'curve-style': 'bezier'
                     }
-                }
+                },
+                {
+                    selector: 'edge[target *= "checkout-w"]',
+                    style: {
+                        'line-color': (edge) => {
+                            const target = edge.target();
+                            return target.hasClass('workload-down') ? '#DA3633' : '#238636';
+                        },
+                        'target-arrow-color': (edge) => {
+                            const target = edge.target();
+                            return target.hasClass('workload-down') ? '#DA3633' : '#238636';
+                        },
+                    }
+                },
             ],
             layout: {
                 name: 'cose',
-                padding: 50,
-                animate: false
+                idealEdgeLength: 100,
+                nodeRepulsion: 400000,
+                edgeElasticity: 100,
+                nestingFactor: 5,
+                gravity: 80,
+                numIter: 1000,
+                initialTemp: 200,
+                coolingFactor: 0.95,
+                minTemp: 1.0
             }
         });
+
+        // Filtering logic
+        const searchInput = document.getElementById('search-input');
+        const clusterFilters = document.getElementById('cluster-filters');
+        const namespaceFilters = document.getElementById('namespace-filters');
+        const labelFilters = document.getElementById('label-filters');
+
+        const clusters = [...new Set(cy.nodes().map(n => n.data('cluster')))];
+        const namespaces = [...new Set(cy.nodes().map(n => n.data('namespace')))];
+        const labels = [...new Set(cy.nodes().flatMap(n => n.data('appLabels') || []))];
+
+        clusterFilters.innerHTML = clusters.map(c => `<label class="checkbox-label"><input type="checkbox" value="${c}" checked> ${c}</label>`).join('');
+        namespaceFilters.innerHTML = namespaces.map(ns => `<label class="checkbox-label"><input type="checkbox" value="${ns}" checked> ${ns}</label>`).join('');
+        labelFilters.innerHTML = labels.map(l => `<label class="checkbox-label"><input type="checkbox" value="${l}" checked> ${l}</label>`).join('');
+
+        const debounce = (fn, delay) => {
+            let timeoutId;
+            return (...args) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => fn(...args), delay);
+            };
+        };
+
+        const applyFilters = () => {
+            const searchText = searchInput.value.toLowerCase();
+            const checkedClusters = [...clusterFilters.querySelectorAll('input:checked')].map(cb => cb.value);
+            const checkedNamespaces = [...namespaceFilters.querySelectorAll('input:checked')].map(cb => cb.value);
+            const checkedLabels = [...labelFilters.querySelectorAll('input:checked')].map(cb => cb.value);
+
+            cy.nodes().forEach(node => {
+                const data = node.data();
+                const isVisible = 
+                    (data.label.toLowerCase().includes(searchText) || searchText === '') &&
+                    checkedClusters.includes(data.cluster) &&
+                    checkedNamespaces.includes(data.namespace) &&
+                    (data.appLabels || []).some(l => checkedLabels.includes(l));
+                
+                if (isVisible) {
+                    node.style('display', 'element');
+                } else {
+                    node.style('display', 'none');
+                }
+            });
+        };
+
+        searchInput.addEventListener('keyup', debounce(applyFilters, 300));
+        clusterFilters.addEventListener('change', applyFilters);
+        namespaceFilters.addEventListener('change', applyFilters);
+        labelFilters.addEventListener('change', applyFilters);
+
+        cy.on('tap', 'node[type="service-failover"]', function(evt){
+            const node = evt.target;
+            const workloads = node.data('workloads');
+
+            if (workloads) {
+                // Remove existing workload nodes for this service to avoid duplicates
+                cy.remove('.workload-node');
+
+                workloads.forEach(w => {
+                    cy.add({
+                        group: 'nodes',
+                        data: { id: w.id, label: w.name, parent: w.parent },
+                        classes: `workload-node workload-${w.status}`
+                    });
+                    cy.add({
+                        group: 'edges',
+                        data: { source: node.id(), target: w.id }
+                    });
+                });
+                
+                // Re-run layout
+                cy.layout({ 
+                    name: 'cose',
+                    idealEdgeLength: 100,
+                    nodeRepulsion: 400000,
+                    edgeElasticity: 100,
+                    nestingFactor: 5,
+                    gravity: 80,
+                    numIter: 1000,
+                    initialTemp: 200,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                }).run();
+            }
+        });
+
+        // Animate edges
+        let offset = 0;
+        function animateEdges() {
+            offset++;
+            cy.edges().style({
+                'line-dash-pattern': [10, 5],
+                'line-dash-offset': -offset
+            });
+            requestAnimationFrame(animateEdges);
+        }
+        animateEdges();
     </script>
 </body>
 </html>

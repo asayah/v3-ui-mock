@@ -7,6 +7,89 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    .nav-group {
+        margin-bottom: 1rem;
+    }
+    .nav-group-title {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        padding: 0 1.5rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .nav-group-title i {
+        font-size: 0.875rem;
+        margin-right: 1rem;
+        width: 20px;
+        text-align: center;
+    }
+    .nav-item.sub-item {
+        padding-left: 3.5rem; /* Indent sub-items */
+    }
+    .nav-group-title.active {
+        color: white;
+    }
+    .cluster-slider-container {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .cluster-slider-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .cluster-search {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+    .cluster-slider {
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding-bottom: 15px; /* For scrollbar */
+    }
+    .ca-card {
+        flex: 0 0 220px; /* Fixed width for cards */
+    }
+    .endpoints-section {
+        background-color: var(--bg-card);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .endpoints-header {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    .endpoint-list-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+    .endpoint-list-item.failing {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid var(--color-error);
+    }
+    .failover-policy-card {
+        background-color: var(--bg-card);
+        border-radius: 8px;
+        padding: 20px;
+    }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -14,9 +97,22 @@
             <div class="logo-area"><div class="logo-subtitle">SOLO ENTERPRISE FOR</div><div class="logo-main">Istio</div></div>
             <nav class="nav-menu">
                 <a href="index.html" class="nav-item"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
-                <a href="global-services.html" class="nav-item active"><i class="fa-solid fa-globe"></i><span>Global Services</span></a>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-arrow-down-up-across-line"></i><span>Traffic</span></div>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title active"><i class="fa-solid fa-globe"></i><span>Global Services</span></div>
+                    <a href="global-services.html" class="nav-item sub-item active"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-cubes"></i><span>Resources</span></div>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
                 <a href="service-graph.html" class="nav-item"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
             </nav>
+            <div class="sidebar-footer"><a href="#" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a></div>
         </aside>
 
         <main class="main-content">
@@ -35,19 +131,49 @@
                 <div class="dh-right"><button class="graph-btn"><i class="fa-solid fa-file-code"></i> View YAML</button></div>
             </div>
 
-            <div class="cluster-avail-grid">
-                <div class="ca-card">
-                    <div class="ca-header">cluster-a <i class="fa-solid fa-circle-check text-warning"></i></div>
-                    <div class="ca-stat"><span>Locality</span> <span>us-east-1</span></div>
-                    <div class="ca-stat"><span>RPS</span> <span>330</span></div>
+            <div class="cluster-slider-container">
+                <div class="cluster-slider-header">
+                    <h2 style="font-size: 1.2rem; font-weight: 600;">Cluster Availability</h2>
+                    <input type="text" class="cluster-search" placeholder="Search clusters...">
                 </div>
-                <div class="ca-card" style="border-color: var(--color-warning);">
-                    <div class="ca-header">cluster-b <i class="fa-solid fa-triangle-exclamation text-warning"></i></div>
-                    <div class="ca-stat"><span>Locality</span> <span>us-east-2</span></div>
-                    <div class="ca-stat"><span>RPS</span> <span>580</span></div>
-                    <div class="ca-stat" style="color: var(--color-warning); margin-top: 5px; font-size: 0.75rem;">Absorbing Failover</div>
+                <div class="cluster-slider">
+                    <div class="ca-card" style="border-color: var(--color-warning);">
+                        <div class="ca-header">cluster-b <i class="fa-solid fa-triangle-exclamation text-warning"></i></div>
+                        <div class="ca-stat"><span>Locality</span> <span>us-east-2</span></div>
+                        <div class="ca-stat"><span>RPS</span> <span>580</span></div>
+                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferZone</span></div>
+                    </div>
+                    <div class="ca-card" style="border-color: var(--color-warning);">
+                        <div class="ca-header">cluster-d <i class="fa-solid fa-triangle-exclamation text-warning"></i></div>
+                        <div class="ca-stat"><span>Locality</span> <span>ap-south-1</span></div>
+                        <div class="ca-stat"><span>RPS</span> <span>120</span></div>
+                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferRegion</span></div>
+                    </div>
+                    <div class="ca-card">
+                        <div class="ca-header">cluster-a <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
+                        <div class="ca-stat"><span>Locality</span> <span>us-east-1</span></div>
+                        <div class="ca-stat"><span>RPS</span> <span>330</span></div>
+                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferClose</span></div>
+                    </div>
+                    <div class="ca-card">
+                        <div class="ca-header">cluster-c <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
+                        <div class="ca-stat"><span>Locality</span> <span>eu-west-1</span></div>
+                        <div class="ca-stat"><span>RPS</span> <span>210</span></div>
+                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">Custom</span></div>
+                    </div>
+                    <div class="ca-card">
+                        <div class="ca-header">cluster-e <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
+                        <div class="ca-stat"><span>Locality</span> <span>ap-northeast-1</span></div>
+                        <div class="ca-stat"><span>RPS</span> <span>150</span></div>
+                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferZone</span></div>
+                    </div>
+                    <div class="ca-card">
+                        <div class="ca-header">cluster-f <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
+                        <div class="ca-stat"><span>Locality</span> <span>sa-east-1</span></div>
+                        <div class="ca-stat"><span>RPS</span> <span>90</span></div>
+                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferClose</span></div>
+                    </div>
                 </div>
-                <div class="ca-card"><div class="ca-header">cluster-c <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div><div class="ca-stat"><span>Locality</span> <span>eu-west-1</span></div><div class="ca-stat"><span>RPS</span> <span>210</span></div></div>
             </div>
 
             <div class="details-grid">
@@ -129,6 +255,48 @@
                     <div class="timeline-item alert"><div class="tl-time">12:01</div><div class="tl-content"><div class="tl-title">Failover</div><div class="tl-desc">Shifted to us-east zone2</div></div></div>
                 </div>
             </div>
+
+            <div class="endpoints-section">
+                <h2 class="endpoints-header">Endpoints (4/5 Healthy)</h2>
+                <div class="endpoint-list">
+                    <div class="endpoint-list-item">
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                        <div>
+                            <div style="font-weight: 600;">checkout-v1-abcde</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-a / us-east-1</div>
+                        </div>
+                    </div>
+                    <div class="endpoint-list-item failing">
+                        <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+                        <div>
+                            <div style="font-weight: 600;">checkout-v2-fghij</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-b / us-east-2</div>
+                        </div>
+                    </div>
+                    <div class="endpoint-list-item">
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                        <div>
+                            <div style="font-weight: 600;">checkout-v1-klmno</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-c / eu-west-1</div>
+                        </div>
+                    </div>
+                    <div class="endpoint-list-item">
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                        <div>
+                            <div style="font-weight: 600;">checkout-v1-pqrst</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-a / us-east-1</div>
+                        </div>
+                    </div>
+                    <div class="endpoint-list-item">
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                        <div>
+                            <div style="font-weight: 600;">checkout-v1-uvwxy</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-c / eu-west-1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 </body>
