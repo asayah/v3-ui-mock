@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Graph - Solo Enterprise</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-area"><div class="logo-subtitle">SOLO ENTERPRISE FOR</div><div class="logo-main">Istio</div></div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <a href="global-services.html" class="nav-item"><i class="fa-solid fa-globe"></i><span>Global Services</span></a>
+                <a href="service-graph.html" class="nav-item active"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
+            </nav>
+            <div class="sidebar-footer"><a href="#" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a></div>
+        </aside>
+
+        <main class="main-content" style="padding: 20px;">
+            <div class="top-bar" style="margin-bottom: 10px;">
+                <div class="breadcrumbs"><i class="fa-solid fa-diagram-project"></i> &nbsp; / &nbsp; <span>Graph</span></div>
+            </div>
+            <div class="graph-controls-bar">
+                <div class="graph-left-controls">
+                    <button class="graph-btn"><i class="fa-solid fa-layer-group"></i> Clusters 2 <i class="fa-solid fa-chevron-down"></i></button>
+                    <button class="graph-btn"><i class="fa-regular fa-folder"></i> Namespaces 4 <i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="graph-right-controls">
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Last refreshed 04:21:34 PM</span>
+                    <button class="graph-btn"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                </div>
+            </div>
+
+            <div id="cy"></div>
+        </main>
+    </div>
+
+    <script>
+        // Data for Cytoscape
+        const elements = [
+            // Clusters (Compound Nodes)
+            { data: { id: 'cluster1', label: 'solo-central' } },
+            { data: { id: 'cluster2', label: 'solo-east' } },
+
+            // Namespaces (Compound Nodes) inside Cluster 1
+            { data: { id: 'ns1', label: 'loadgenerator', parent: 'cluster1' } },
+            { data: { id: 'ns2', label: 'gloo-system', parent: 'cluster1' } },
+            { data: { id: 'ns3', label: 'bookinfo-front', parent: 'cluster1' } },
+            { data: { id: 'ns4', label: 'bookinfo-back', parent: 'cluster1' } },
+            // Namespaces inside Cluster 2
+            { data: { id: 'ns5', label: 'bookinfo-back-east', parent: 'cluster2' } },
+
+            // Workload Nodes
+            { data: { id: 'bombardier', label: 'bombardier', parent: 'ns1', type: 'workload' } },
+            { data: { id: 'ingress', label: 'ingress-gateway', parent: 'ns2', type: 'gateway' } },
+            { data: { id: 'productpage', label: 'productpage-v1', parent: 'ns3', type: 'workload' } },
+            { data: { id: 'reviews1', label: 'reviews-v1', parent: 'ns4', type: 'workload' } },
+            { data: { id: 'reviews2', label: 'reviews-v2', parent: 'ns4', type: 'workload' } },
+            { data: { id: 'reviews3', label: 'reviews-v3', parent: 'ns4', type: 'workload' } },
+            { data: { id: 'ratings', label: 'ratings-v1', parent: 'ns4', type: 'workload' } },
+            { data: { id: 'details', label: 'details-v1', parent: 'ns5', type: 'workload' } },
+
+            // Edges
+            { data: { source: 'bombardier', target: 'productpage' } },
+            { data: { source: 'ingress', target: 'productpage' } },
+            { data: { source: 'productpage', target: 'reviews1' } },
+            { data: { source: 'productpage', target: 'reviews2' } },
+            { data: { source: 'productpage', target: 'reviews3' } },
+            { data: { source: 'reviews1', target: 'ratings' } },
+            { data: { source: 'reviews2', target: 'ratings' } },
+            { data: { source: 'reviews3', target: 'ratings' } },
+            { data: { source: 'reviews3', target: 'details' } } // Cross cluster
+        ];
+
+        var cy = cytoscape({
+            container: document.getElementById('cy'),
+            elements: elements,
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'background-color': '#1f2937',
+                        'border-width': 1,
+                        'border-color': '#374151',
+                        'label': 'data(label)',
+                        'color': '#9ca3af',
+                        'font-size': 10,
+                        'text-valign': 'bottom',
+                        'text-margin-y': 5
+                    }
+                },
+                // Cluster Styling (Outer Box)
+                {
+                    selector: '#cluster1, #cluster2',
+                    style: {
+                        'background-color': 'rgba(19, 20, 31, 0.4)',
+                        'border-width': 1,
+                        'border-color': '#3f3f46',
+                        'shape': 'roundrectangle',
+                        'label': 'data(label)',
+                        'text-valign': 'top',
+                        'text-halign': 'center',
+                        'color': '#ffffff',
+                        'font-weight': 'bold',
+                        'font-size': 12,
+                        'padding': 20
+                    }
+                },
+                // Namespace Styling (Inner Box)
+                {
+                    selector: '#ns1, #ns2, #ns3, #ns4, #ns5',
+                    style: {
+                        'background-color': 'rgba(0,0,0,0.2)',
+                        'border-width': 1,
+                        'border-style': 'dashed',
+                        'border-color': '#4b5563',
+                        'label': 'data(label)',
+                        'color': '#6b7280',
+                        'font-size': 9,
+                        'text-valign': 'top'
+                    }
+                },
+                // Workload Nodes (Actual Services)
+                {
+                    selector: '[type = "workload"], [type = "gateway"]',
+                    style: {
+                        'width': 30,
+                        'height': 30,
+                        'background-color': '#13141f',
+                        'border-width': 1,
+                        'border-color': '#4287f5', /* Accent Color */
+                        'color': '#e5e7eb'
+                    }
+                },
+                {
+                    selector: '[type = "gateway"]',
+                    style: {
+                        'shape': 'diamond',
+                        'border-color': '#10b981' /* Green for gateway */
+                    }
+                },
+                // Edges
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'line-color': '#10b981', /* Green traffic */
+                        'target-arrow-color': '#10b981',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier'
+                    }
+                }
+            ],
+            layout: {
+                name: 'cose',
+                padding: 50,
+                animate: false
+            }
+        });
+    </script>
+</body>
+</html>

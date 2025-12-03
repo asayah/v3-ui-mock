@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solo Enterprise for Istio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-subtitle">SOLO ENTERPRISE FOR</div>
+                <div class="logo-main">Istio</div>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item active">
+                    <i class="fa-solid fa-table-columns"></i> <span>Dashboard</span>
+                </a>
+                <a href="global-services.html" class="nav-item">
+                    <i class="fa-solid fa-globe"></i> <span>Global Services</span>
+                </a>
+                <a href="service-graph.html" class="nav-item">
+                    <i class="fa-solid fa-diagram-project"></i> <span>Service Graph</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> <span>Settings</span></a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="breadcrumbs">
+                    <i class="fa-solid fa-house"></i> &nbsp; / &nbsp; <span>Dashboard</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="widget-manage-btn" style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-sliders"></i> Manage Widgets
+                    </button>
+                    <button class="refresh-btn" style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <div class="summary-card">
+                    <div class="summary-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--color-info);"><i class="fa-solid fa-server"></i></div>
+                    <div class="summary-info">
+                        <div class="summary-value">4</div>
+                        <div class="summary-label">Total Clusters</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--color-success);"><i class="fa-solid fa-network-wired"></i></div>
+                    <div class="summary-info">
+                        <div class="summary-value">14</div>
+                        <div class="summary-label">Total Services</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--color-error);"><i class="fa-solid fa-circle-xmark"></i></div>
+                    <div class="summary-info">
+                        <div class="summary-value" style="color: var(--color-error);">1</div>
+                        <div class="summary-label">Active Errors</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--color-warning);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="summary-info">
+                        <div class="summary-value" style="color: var(--color-warning);">3</div>
+                        <div class="summary-label">Warnings</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="monitoring-section">
+                <div class="section-header-controls" style="margin-bottom: 20px;">
+                    <h2 style="font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin: 0;">Monitoring</h2>
+                </div>
+
+                <div class="widgets-grid">
+                    
+                    <div class="widget-container widget-half" data-widget="cluster-health">
+                        <div class="widget-header">
+                            <div class="widget-title-section">
+                                <h2 class="widget-title"><i class="fa-solid fa-server"></i> Cluster Health</h2>
+                                <span class="widget-badge">Active</span>
+                            </div>
+                            <div class="widget-actions">
+                                <div class="widget-size-controls">
+                                    <button class="widget-size-btn" data-size="full" title="Full Width"><i class="fa-solid fa-arrows-left-right"></i></button>
+                                    <button class="widget-size-btn active" data-size="half" title="Half Width"><i class="fa-solid fa-arrow-left"></i></button>
+                                </div>
+                                <button class="widget-toggle-btn"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="widget-content">
+                            <div class="widget-kpi-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
+                                <div class="widget-stat-card">
+                                    <div class="widget-stat-label">Connected Clusters</div>
+                                    <div class="widget-stat-value">4</div>
+                                </div>
+                                <div class="widget-stat-card">
+                                    <div class="widget-stat-label">Healthy Clusters</div>
+                                    <div class="widget-stat-value" style="color: var(--color-success);">3</div>
+                                </div>
+                            </div>
+                            <div class="widget-section" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                                <div class="widget-section-header">
+                                    <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-solid fa-server"></i> Clusters
+                                    </h3>
+                                </div>
+                                <div class="widget-service-list" style="flex: 1;">
+                                    <div class="widget-service-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; margin-bottom: 6px;">
+                                        <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                            <i class="fa-solid fa-circle-check" style="color: var(--color-success); font-size: 0.85rem;"></i>
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 600; font-size: 0.85rem;">cluster-a</div>
+                                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">Istio 1.20.1 • CA expires in 3596 days</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="widget-service-item warning" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 8px; margin-bottom: 6px;">
+                                        <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                            <i class="fa-solid fa-triangle-exclamation" style="color: var(--color-warning); font-size: 0.85rem;"></i>
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 600; font-size: 0.85rem;">cluster-b</div>
+                                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">Istio 1.18.0 • Degraded performance</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="widget-service-item" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; margin-bottom: 6px;">
+                                        <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                            <i class="fa-solid fa-circle-check" style="color: var(--color-success); font-size: 0.85rem;"></i>
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 600; font-size: 0.85rem;">cluster-c</div>
+                                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">Istio 1.20.1 • CA expires in 3596 days</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="#" class="widget-view-all">
+                                    <i class="fa-solid fa-arrow-right" style="margin-right: 6px;"></i> View All Clusters
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="widget-container widget-half" data-widget="global-services">
+                        <div class="widget-header">
+                            <div class="widget-title-section">
+                                <h2 class="widget-title"><i class="fa-solid fa-globe"></i> Global Services Health</h2>
+                                <span class="widget-badge">Active</span>
+                            </div>
+                            <div class="widget-actions">
+                                <div class="widget-size-controls">
+                                    <button class="widget-size-btn" data-size="full" title="Full Width"><i class="fa-solid fa-arrows-left-right"></i></button>
+                                    <button class="widget-size-btn active" data-size="half" title="Half Width"><i class="fa-solid fa-arrow-left"></i></button>
+                                </div>
+                                <button class="widget-toggle-btn"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="widget-content" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="widget-kpi-grid" style="flex-shrink: 0;">
+                                <div class="widget-stat-card">
+                                    <div class="widget-stat-label">Total Services</div>
+                                    <div class="widget-stat-value">14</div>
+                                </div>
+                                <div class="widget-stat-card">
+                                    <div class="widget-stat-label">Healthy</div>
+                                    <div class="widget-stat-value" style="color: var(--color-success);">10</div>
+                                </div>
+                                <div class="widget-stat-card">
+                                    <div class="widget-stat-label">Warnings</div>
+                                    <div class="widget-stat-value" style="color: var(--color-warning);">3</div>
+                                </div>
+                                <div class="widget-stat-card">
+                                    <div class="widget-stat-label">Errors</div>
+                                    <div class="widget-stat-value" style="color: var(--color-error);">1</div>
+                                </div>
+                            </div>
+
+                            <div class="widget-section" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                                <div class="widget-section-header">
+                                    <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-solid fa-circle-xmark" style="color: var(--color-error);"></i> Services with Errors
+                                    </h3>
+                                    <span class="widget-count-badge" style="background-color: var(--color-error-bg); color: var(--color-error); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">1</span>
+                                </div>
+                                <div class="widget-service-list" style="flex: 1;">
+                                    <a href="service-details.html" class="widget-service-item error" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; text-decoration: none; color: var(--text-primary); margin-bottom: 6px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fa-solid fa-circle-xmark" style="color: var(--color-error); font-size: 0.85rem;"></i>
+                                            <div>
+                                                <div style="font-weight: 600; font-size: 0.85rem;">inventory-service</div>
+                                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">All endpoints down in eu-west cluster</div>
+                                            </div>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right" style="color: var(--text-muted); font-size: 0.75rem;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <a href="global-services.html" class="widget-view-all">
+                                <i class="fa-solid fa-arrow-right" style="margin-right: 6px;"></i> View All
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="widget-container widget-full" data-widget="mesh-services">
+                        <div class="widget-header">
+                            <div class="widget-title-section">
+                                <h2 class="widget-title"><i class="fa-solid fa-network-wired"></i> Mesh Services</h2>
+                                <span class="widget-badge">Active</span>
+                            </div>
+                            <div class="widget-actions">
+                                <div class="widget-size-controls">
+                                    <button class="widget-size-btn active" data-size="full" title="Full Width"><i class="fa-solid fa-arrows-left-right"></i></button>
+                                    <button class="widget-size-btn" data-size="half" title="Half Width"><i class="fa-solid fa-arrow-left"></i></button>
+                                </div>
+                                <button class="widget-toggle-btn"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="widget-content" style="display: flex; flex-direction: row; align-items: center; justify-content: space-around; padding: 20px; gap: 40px;">
+                            <div class="mesh-donut-wrapper" style="position: relative; width: 180px; height: 180px;">
+                                <svg width="180" height="180" viewBox="0 0 100 100" class="mesh-donut-chart">
+                                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#27272a" stroke-width="8"></circle>
+                                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" stroke-width="8" stroke-dasharray="188 377" stroke-dashoffset="0" transform="rotate(-90 50 50)"></circle>
+                                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#06b6d4" stroke-width="8" stroke-dasharray="94 377" stroke-dashoffset="-188" transform="rotate(-90 50 50)"></circle>
+                                </svg>
+                                <div class="mesh-donut-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                    <div style="font-size: 2.2rem; font-weight: 700; color: var(--text-primary); line-height: 1;">66</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Services</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; width: 300px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background-color: rgba(0, 0, 0, 0.2); border-radius: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 10px; height: 10px; border-radius: 50%; background-color: var(--color-success);"></div>
+                                        <span style="font-size: 0.85rem; color: var(--text-primary);">In Mesh</span>
+                                    </div>
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">23</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background-color: rgba(0, 0, 0, 0.2); border-radius: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 10px; height: 10px; border-radius: 50%; background-color: var(--color-cyan);"></div>
+                                        <span style="font-size: 0.85rem; color: var(--text-primary);">Ambient Services</span>
+                                    </div>
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">17</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background-color: rgba(0, 0, 0, 0.2); border-radius: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 10px; height: 10px; border-radius: 50%; background-color: #3f3f46;"></div>
+                                        <span style="font-size: 0.85rem; color: var(--text-primary);">Out of Mesh</span>
+                                    </div>
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">43</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // Restoring the original JS logic
+        document.querySelectorAll('.widget-size-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const widget = this.closest('.widget-container');
+                const size = this.dataset.size;
+                const otherBtn = widget.querySelector(`.widget-size-btn[data-size="${size === 'full' ? 'half' : 'full'}"]`);
+                this.classList.add('active');
+                otherBtn.classList.remove('active');
+                widget.classList.remove('widget-full', 'widget-half');
+                widget.classList.add(`widget-${size}`);
+            });
+        });
+
+        document.querySelectorAll('.widget-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const widget = this.closest('.widget-container');
+                const content = widget.querySelector('.widget-content');
+                const icon = this.querySelector('i');
+                if (content) {
+                    if (content.style.display === 'none') {
+                        content.style.display = '';
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                        widget.classList.remove('widget-collapsed');
+                    } else {
+                        content.style.display = 'none';
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                        widget.classList.add('widget-collapsed');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Services - Solo Enterprise</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-area"><div class="logo-subtitle">SOLO ENTERPRISE FOR</div><div class="logo-main">Istio</div></div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <a href="global-services.html" class="nav-item active"><i class="fa-solid fa-globe"></i><span>Global Services</span></a>
+                <a href="service-graph.html" class="nav-item"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
+            </nav>
+            <div class="sidebar-footer"><a href="#" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar"><div class="breadcrumbs"><i class="fa-solid fa-globe"></i> &nbsp; / &nbsp; <span>Global Services</span></div></div>
+            <div class="kpi-stats-grid">
+                <div class="stat-card"><span class="stat-label">Total Services</span><span class="stat-value">42</span></div>
+                <div class="stat-card"><span class="stat-label">Warnings</span><span class="stat-value text-warning">3</span></div>
+                <div class="stat-card"><span class="stat-label">Errors</span><span class="stat-value text-error">1</span></div>
+                <div class="stat-card"><span class="stat-label">Info</span><span class="stat-sub" style="margin-top: 5px; font-size: 1rem;"><span class="text-info" style="font-weight: 700;">2</span> Active Failover</span></div>
+                <div class="stat-card"><span class="stat-label">Cluster Coverage</span><span class="stat-value">92%</span></div>
+            </div>
+
+            <div class="gs-layout">
+                <aside class="filters-panel">
+                    <div class="filter-group">
+                        <div class="filter-title">Status</div>
+                        <div class="filter-option"><div class="checkbox"></div> Healthy</div><div class="filter-option"><div class="checkbox checked"></div> Warning</div><div class="filter-option"><div class="checkbox checked"></div> Error</div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-title">Visibility</div>
+                        <div class="filter-option"><div class="checkbox checked"></div> Global</div><div class="filter-option"><div class="checkbox"></div> Segment</div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-title">Cluster</div>
+                        <input type="text" class="filter-search" placeholder="Search clusters...">
+                        <div class="filter-option"><div class="checkbox"></div> cluster-a</div><div class="filter-option"><div class="checkbox"></div> cluster-b</div><div class="filter-option"><div class="checkbox"></div> mgmt-cluster</div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-title">Segments</div>
+                        <input type="text" class="filter-search" placeholder="Search segments...">
+                        <div class="filter-option"><div class="checkbox"></div> team1</div><div class="filter-option"><div class="checkbox"></div> team2</div><div class="filter-option"><div class="checkbox"></div> pci-compliant</div>
+                    </div>
+                </aside>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Status</th><th>Global Service Name</th><th>Host</th><th>Namespace</th><th>Visibility</th><th>Clusters</th><th>RPS (15m)</th><th>Summary</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: rgba(245, 158, 11, 0.05);">
+                                <td><i class="fa-solid fa-triangle-exclamation status-icon text-warning"></i></td>
+                                <td><a href="service-details.html" style="color: white; font-weight: 600; text-decoration: none;">checkout</a><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">checkout.acme.int</td>
+                                <td>payments</td>
+                                <td>Global</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,20 L20,15 L40,25 L60,5 L80,10 L100,20 L100,30 Z" class="spark-fill warn"></path><path d="M0,20 L20,15 L40,25 L60,5 L80,10 L100,20" class="spark-line warn"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--color-warning); text-align: right; margin-top: -5px;">1,245</div>
+                                </td>
+                                <td class="text-warning">Endpoints failing in us-east zone 1</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">catalog</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">catalog.acme.int</td>
+                                <td>store</td>
+                                <td>Global</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,15 L20,18 L40,12 L60,15 L80,14 L100,10 L100,30 Z" class="spark-fill"></path><path d="M0,15 L20,18 L40,12 L60,15 L80,14 L100,10" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">850</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">user-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">users.acme.int</td>
+                                <td>identity</td>
+                                <td>Global</td>
+                                <td>5</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,20 L20,22 L40,18 L60,20 L80,19 L100,21 L100,30 Z" class="spark-fill"></path><path d="M0,20 L20,22 L40,18 L60,20 L80,19 L100,21" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">2,340</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">payment-gateway</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">payments.acme.int</td>
+                                <td>payments</td>
+                                <td>Global</td>
+                                <td>6</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,10 L20,8 L40,12 L60,9 L80,11 L100,8 L100,30 Z" class="spark-fill"></path><path d="M0,10 L20,8 L40,12 L60,9 L80,11 L100,8" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">3,890</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr style="background-color: rgba(239, 68, 68, 0.05);">
+                                <td><i class="fa-solid fa-circle-xmark status-icon text-error" style="color: var(--color-error)"></i></td>
+                                <td><span style="font-weight: 600;">inventory-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">inventory.acme.int</td>
+                                <td>warehouse</td>
+                                <td>Global</td>
+                                <td>3</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,25 L20,28 L40,30 L60,30 L80,30 L100,30 L100,30 Z" class="spark-fill error"></path><path d="M0,25 L20,28 L40,30 L60,30 L80,30 L100,30" class="spark-line error"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--color-error); text-align: right; margin-top: -5px;">0</div>
+                                </td>
+                                <td class="text-error">All endpoints down in eu-west cluster</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">notification-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">notifications.acme.int</td>
+                                <td>messaging</td>
+                                <td>Global</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,12 L20,10 L40,14 L60,11 L80,13 L100,9 L100,30 Z" class="spark-fill"></path><path d="M0,12 L20,10 L40,14 L60,11 L80,13 L100,9" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">1,567</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr style="background-color: rgba(245, 158, 11, 0.05);">
+                                <td><i class="fa-solid fa-triangle-exclamation status-icon text-warning"></i></td>
+                                <td><span style="font-weight: 600;">search-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">search.acme.int</td>
+                                <td>store</td>
+                                <td>Global</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,18 L20,22 L40,20 L60,25 L80,23 L100,28 L100,30 Z" class="spark-fill warn"></path><path d="M0,18 L20,22 L40,20 L60,25 L80,23 L100,28" class="spark-line warn"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--color-warning); text-align: right; margin-top: -5px;">892</div>
+                                </td>
+                                <td class="text-warning">High latency in ap-southeast zone</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">analytics-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">analytics.acme.int</td>
+                                <td>data</td>
+                                <td>Segment</td>
+                                <td>2</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,16 L20,14 L40,18 L60,15 L80,17 L100,13 L100,30 Z" class="spark-fill"></path><path d="M0,16 L20,14 L40,18 L60,15 L80,17 L100,13" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">456</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">auth-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">auth.acme.int</td>
+                                <td>identity</td>
+                                <td>Global</td>
+                                <td>5</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,19 L20,17 L40,21 L60,18 L80,20 L100,16 L100,30 Z" class="spark-fill"></path><path d="M0,19 L20,17 L40,21 L60,18 L80,20 L100,16" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">4,123</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr style="background-color: rgba(245, 158, 11, 0.05);">
+                                <td><i class="fa-solid fa-triangle-exclamation status-icon text-warning"></i></td>
+                                <td><span style="font-weight: 600;">shipping-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">shipping.acme.int</td>
+                                <td>logistics</td>
+                                <td>Global</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,22 L20,20 L40,24 L60,21 L80,23 L100,25 L100,30 Z" class="spark-fill warn"></path><path d="M0,22 L20,20 L40,24 L60,21 L80,23 L100,25" class="spark-line warn"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--color-warning); text-align: right; margin-top: -5px;">678</div>
+                                </td>
+                                <td class="text-warning">Degraded performance in us-west zone</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">recommendation-engine</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">recommendations.acme.int</td>
+                                <td>ml</td>
+                                <td>Global</td>
+                                <td>3</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,14 L20,16 L40,12 L60,15 L80,13 L100,11 L100,30 Z" class="spark-fill"></path><path d="M0,14 L20,16 L40,12 L60,15 L80,13 L100,11" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">1,234</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">order-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">orders.acme.int</td>
+                                <td>store</td>
+                                <td>Global</td>
+                                <td>5</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,11 L20,9 L40,13 L60,10 L80,12 L100,8 L100,30 Z" class="spark-fill"></path><path d="M0,11 L20,9 L40,13 L60,10 L80,12 L100,8" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">5,678</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">review-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">reviews.acme.int</td>
+                                <td>store</td>
+                                <td>Global</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,17 L20,15 L40,19 L60,16 L80,18 L100,14 L100,30 Z" class="spark-fill"></path><path d="M0,17 L20,15 L40,19 L60,16 L80,18 L100,14" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">789</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">cart-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">cart.acme.int</td>
+                                <td>store</td>
+                                <td>Global</td>
+                                <td>4</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,13 L20,11 L40,15 L60,12 L80,14 L100,10 L100,30 Z" class="spark-fill"></path><path d="M0,13 L20,11 L40,15 L60,12 L80,14 L100,10" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">2,901</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
+                                <td><span style="font-weight: 600;">billing-service</span><div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div></td>
+                                <td style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem;">billing.acme.int</td>
+                                <td>payments</td>
+                                <td>Global</td>
+                                <td>5</td>
+                                <td>
+                                    <div class="sparkline-wrapper"><svg class="sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0,30 L0,18 L20,16 L40,20 L60,17 L80,19 L100,15 L100,30 Z" class="spark-fill"></path><path d="M0,18 L20,16 L40,20 L60,17 L80,19 L100,15" class="spark-line"></path></svg></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: -5px;">1,456</div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Healthy</td>
+                                <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
