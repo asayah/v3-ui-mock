@@ -252,6 +252,18 @@
                     }
                 },
                 {
+                    selector: '.infra-node',
+                    style: {
+                        'shape': 'hexagon',
+                        'background-color': '#4B4F58',
+                        'border-color': '#8B949E',
+                        'width': 40,
+                        'height': 40,
+                        'font-size': 10,
+                        'text-margin-y': 4,
+                    }
+                },
+                {
                     selector: '.workload-node',
                     style: {
                         'width': 30,
@@ -297,6 +309,15 @@
                         },
                     }
                 },
+                {
+                    selector: '.expanded-path',
+                     style: {
+                        'line-color': '#F59E0B',
+                        'target-arrow-color': '#F59E0B',
+                        'transition-property': 'line-color, target-arrow-color',
+                        'transition-duration': '0.3s'
+                    }
+                }
             ],
             layout: {
                 name: 'cose',
@@ -318,13 +339,13 @@
         const namespaceFilters = document.getElementById('namespace-filters');
         const labelFilters = document.getElementById('label-filters');
 
-        const clusters = [...new Set(cy.nodes().map(n => n.data('cluster')))];
-        const namespaces = [...new Set(cy.nodes().map(n => n.data('namespace')))];
+        const clusters = [...new Set(cy.nodes('[?cluster]').map(n => n.data('cluster')))];
+        const namespaces = [...new Set(cy.nodes('[?namespace]').map(n => n.data('namespace')))];
         const labels = [...new Set(cy.nodes().flatMap(n => n.data('appLabels') || []))];
 
-        clusterFilters.innerHTML = clusters.map(c => `<label class="checkbox-label"><input type="checkbox" value="${c}" checked> ${c}</label>`).join('');
-        namespaceFilters.innerHTML = namespaces.map(ns => `<label class="checkbox-label"><input type="checkbox" value="${ns}" checked> ${ns}</label>`).join('');
-        labelFilters.innerHTML = labels.map(l => `<label class="checkbox-label"><input type="checkbox" value="${l}" checked> ${l}</label>`).join('');
+        clusterFilters.innerHTML = clusters.map(c => c ? `<label class="checkbox-label"><input type="checkbox" value="${c}" checked> ${c}</label>` : '').join('');
+        namespaceFilters.innerHTML = namespaces.map(ns => ns ? `<label class="checkbox-label"><input type="checkbox" value="${ns}" checked> ${ns}</label>` : '').join('');
+        labelFilters.innerHTML = labels.map(l => l ? `<label class="checkbox-label"><input type="checkbox" value="${l}" checked> ${l}</label>` : '').join('');
 
         const debounce = (fn, delay) => {
             let timeoutId;
@@ -342,11 +363,19 @@
 
             cy.nodes().forEach(node => {
                 const data = node.data();
+                const isParent = !data.parent;
+
+                // Keep parent nodes always visible for context
+                if (isParent) {
+                    node.style('display', 'element');
+                    return;
+                }
+
                 const isVisible = 
-                    (data.label.toLowerCase().includes(searchText) || searchText === '') &&
-                    checkedClusters.includes(data.cluster) &&
-                    checkedNamespaces.includes(data.namespace) &&
-                    (data.appLabels || []).some(l => checkedLabels.includes(l));
+                    (searchText === '' || (data.label && data.label.toLowerCase().includes(searchText))) &&
+                    (checkedClusters.length === 0 || checkedClusters.includes(data.cluster)) &&
+                    (checkedNamespaces.length === 0 || checkedNamespaces.includes(data.namespace)) &&
+                    (checkedLabels.length === 0 || (data.appLabels || []).some(l => checkedLabels.includes(l)));
                 
                 if (isVisible) {
                     node.style('display', 'element');
@@ -361,38 +390,133 @@
         namespaceFilters.addEventListener('change', applyFilters);
         labelFilters.addEventListener('change', applyFilters);
 
+        let expandedNodeId = null;
+
         cy.on('tap', 'node[type="service-failover"]', function(evt){
             const node = evt.target;
+            const serviceId = node.id();
             const workloads = node.data('workloads');
 
-            if (workloads) {
-                // Remove existing workload nodes for this service to avoid duplicates
-                cy.remove('.workload-node');
+            if (expandedNodeId === serviceId) {
+                cy.remove(`.expanded-path-${serviceId}`);
+                expandedNodeId = null;
+                return;
+            }
 
-                workloads.forEach(w => {
+            if (expandedNodeId) {
+                cy.remove(`.expanded-path-${expandedNodeId}`);
+            }
+            expandedNodeId = serviceId;
+
+            if (workloads) {
+                const sourceServices = cy.edges(`[target = "${serviceId}"]`).sources();
+                if (sourceServices.empty()) {
+                    console.warn('No source service found for', serviceId);
+                    return;
+                }
+                const sourceService = sourceServices.first();
+                const sourceServiceId = sourceService.id();
+                const sourceParent = sourceService.parent().id();
+
+                const pathClasses = `expanded-path expanded-path-${serviceId}`;
+
+                const clientPodId = `${serviceId}-client-pod`;
+                cy.add({
+                    group: 'nodes',
+                    data: { id: clientPodId, label: 'Client Pod', parent: sourceParent },
+                    classes: `${pathClasses} workload-node workload-up`
+                });
+                cy.add({
+                    group: 'edges',
+                    data: { id: `edge-to-${clientPodId}`, source: sourceServiceId, target: clientPodId},
+                    classes: pathClasses
+                });
+
+                const ztunnelId = `${serviceId}-ztunnel-c1`;
+                cy.add({
+                    group: 'nodes',
+                    data: { id: ztunnelId, label: 'ztunnel', parent: sourceParent },
+                    classes: `${pathClasses} infra-node`
+                });
+                cy.add({
+                    group: 'edges',
+                    data: { id: `edge-to-${ztunnelId}`, source: clientPodId, target: ztunnelId},
+                    classes: pathClasses
+                });
+
+                const healthyWorkload = workloads.find(w => w.status === 'up');
+                if(healthyWorkload) {
+                    const destParent = healthyWorkload.parent;
+
+                    const ewGatewayId = `${serviceId}-ew-gateway-c2`;
                     cy.add({
                         group: 'nodes',
-                        data: { id: w.id, label: w.name, parent: w.parent },
-                        classes: `workload-node workload-${w.status}`
+                        data: { id: ewGatewayId, label: 'E/W Gateway', parent: destParent },
+                        classes: `${pathClasses} infra-node`
                     });
                     cy.add({
                         group: 'edges',
-                        data: { source: node.id(), target: w.id }
+                        data: { id: `edge-to-${ewGatewayId}`, source: ztunnelId, target: ewGatewayId},
+                        classes: pathClasses
+                    });
+
+                    const waypointId = `${serviceId}-waypoint-c2`;
+                    cy.add({
+                        group: 'nodes',
+                        data: { id: waypointId, label: 'Waypoint', parent: destParent },
+                        classes: `${pathClasses} infra-node`
+                    });
+                    cy.add({
+                        group: 'edges',
+                        data: { id: `edge-to-${waypointId}`, source: ewGatewayId, target: waypointId},
+                        classes: pathClasses
+                    });
+                    
+                    if(cy.getElementById(healthyWorkload.id).empty()) {
+                        cy.add({
+                            group: 'nodes',
+                            data: { id: healthyWorkload.id, label: healthyWorkload.name, parent: destParent },
+                            classes: `${pathClasses} workload-node workload-up`
+                        });
+                    }
+
+                    cy.add({
+                        group: 'edges',
+                        data: { id: `edge-to-${healthyWorkload.id}`, source: waypointId, target: healthyWorkload.id},
+                        classes: pathClasses
+                    });
+                }
+
+                const unhealthyWorkloads = workloads.filter(w => w.status === 'down');
+                unhealthyWorkloads.forEach((w) => {
+                     if(cy.getElementById(w.id).empty()) {
+                        cy.add({
+                            group: 'nodes',
+                            data: { id: w.id, label: w.name, parent: w.parent },
+                            classes: `${pathClasses} workload-node workload-down`
+                        });
+                    }
+                    cy.add({
+                        group: 'edges',
+                        data: { id: `edge-unhealthy-to-${w.id}`, source: ztunnelId, target: w.id},
+                        classes: pathClasses
                     });
                 });
                 
-                // Re-run layout
                 cy.layout({ 
                     name: 'cose',
-                    idealEdgeLength: 100,
-                    nodeRepulsion: 400000,
-                    edgeElasticity: 100,
+                    idealEdgeLength: 120,
+                    nodeRepulsion: 500000,
+                    edgeElasticity: 150,
                     nestingFactor: 5,
                     gravity: 80,
                     numIter: 1000,
                     initialTemp: 200,
                     coolingFactor: 0.95,
-                    minTemp: 1.0
+                    minTemp: 1.0,
+                    animate: 'end',
+                    animationDuration: 500,
+                    fit: false
                 }).run();
             }
         });
