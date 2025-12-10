@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --graph-bg: #0D1117;
@@ -133,12 +134,171 @@
             display: flex;
             gap: 12px;
         }
+
+        .details-panel {
+            font-size: 0.85rem;
+        }
+        .details-section {
+            margin-bottom: 20px;
+        }
+        .details-section-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 150px;
+            margin-bottom: 20px;
+        }
+
+        .auth-policy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .auth-policy-search {
+            width: 60%;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+        
+        .auth-policy-item {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .auth-policy-item-header {
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .auth-policy-name {
+            font-weight: 600;
+        }
+
+        .auth-policy-item-header i {
+            transition: transform 0.2s;
+        }
+
+        .auth-policy-item.expanded .auth-policy-item-header i {
+            transform: rotate(90deg);
+        }
+
+        .auth-policy-details {
+            display: none;
+            padding: 0 12px 12px;
+        }
+
+        .auth-policy-item.expanded .auth-policy-details {
+            display: block;
+        }
+
+        .auth-policy-details pre {
+            background-color: #161B22;
+            color: #C9D1D9;
+            padding: 10px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 0.75rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .pagination button {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            margin: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .modal-content pre {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            background-color: #161B22;
+            color: #C9D1D9;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
-            <div class="logo-area"><div class="logo-subtitle">SOLO ENTERPRISE FOR</div><div class="logo-main">Istio</div></div>
+            <div class="logo-area">
+                <div class="logo-subtitle">SOLO ENTERPRISE FOR</div>
+                <div class="logo-main">Istio</div>
+            </div>
             <nav class="nav-menu">
                 <a href="index.html" class="nav-item"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
                 <div class="nav-group">
@@ -146,17 +306,19 @@
                     <a href="#" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
                 </div>
                 <div class="nav-group">
-                    <div class="nav-group-title"><i class="fa-solid fa-globe"></i><span>Global Services</span></div>
+                    <div class="nav-group-title active"><i class="fa-solid fa-globe"></i><span>Global Services</span></div>
                     <a href="global-services.html" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
                     <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
                 </div>
                 <div class="nav-group">
                     <div class="nav-group-title"><i class="fa-solid fa-cubes"></i><span>Resources</span></div>
-                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                    <a href="resources.html" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
                 </div>
                 <a href="service-graph.html" class="nav-item active"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
             </nav>
-            <div class="sidebar-footer"><a href="#" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a></div>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> <span>Settings</span></a>
+            </div>
         </aside>
 
         <div class="main-content">
@@ -185,10 +347,35 @@
                     <div id="label-filters" style="max-height: 200px; overflow-y: auto;"></div>
                 </div>
             </aside>
+
+            <div id="details-panel" class="details-panel">
+                <div id="details-header" class="details-header"></div>
+                <div id="details-content" class="details-content"></div>
+            </div>
+
+            <div id="yaml-modal" class="modal-overlay" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="yaml-title"></h2>
+                        <button id="close-yaml-modal" class="close-btn">&times;</button>
+                    </div>
+                    <pre id="yaml-content"></pre>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        const generateTimeSeriesData = () => {
+            const labels = [];
+            const data = [];
+            for (let i = 0; i < 10; i++) {
+                labels.push(`-0m${i*10}s`);
+                data.push(Math.random() * 100);
+            }
+            return { labels, data };
+        };
+
         const elements = {
             nodes: [
                 // Cluster parent nodes
@@ -196,14 +383,55 @@
                 { data: { id: 'cluster-b', label: 'Cluster B' } },
 
                 // Simplified Service nodes
-                { data: { id: 'frontend-app', label: 'Frontend App', type: 'webapp', parent: 'cluster-a' } },
-                { data: { id: 'payment-service', label: 'Payment Service', type: 'service', parent: 'cluster-a' } },
-                { data: { id: 'checkout-service', label: 'Checkout Service', type: 'service-failover', parent: 'cluster-a', 
+                { data: { 
+                    id: 'frontend-app', label: 'Frontend App', type: 'webapp', parent: 'cluster-a',
+                    timeSeries: {
+                        p99: generateTimeSeriesData(),
+                        p95: generateTimeSeriesData(),
+                        rps: generateTimeSeriesData(),
+                        status_2xx: generateTimeSeriesData(),
+                        status_4xx: generateTimeSeriesData(),
+                        status_5xx: generateTimeSeriesData(),
+                    },
+                    authPolicies: []
+                } },
+                { data: { 
+                    id: 'payment-service', label: 'Payment Service', type: 'service', parent: 'cluster-a',
+                    timeSeries: {
+                        p99: generateTimeSeriesData(),
+                        p95: generateTimeSeriesData(),
+                        rps: generateTimeSeriesData(),
+                        status_2xx: generateTimeSeriesData(),
+                        status_4xx: generateTimeSeriesData(),
+                        status_5xx: generateTimeSeriesData(),
+                    },
+                    authPolicies: [
+                        { name: 'allow-frontend-access', yaml: 'apiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: allow-frontend-access\n  namespace: default\nspec:\n  selector:\n    matchLabels:\n      app: payment-service\n  action: ALLOW\n  rules:\n  - from:\n    - source:\n        principals: ["cluster.local/ns/default/sa/frontend-app"]' }
+                    ]
+                } },
+                { data: { 
+                    id: 'checkout-service', label: 'Checkout Service', type: 'service-failover', parent: 'cluster-a', 
+                    timeSeries: {
+                        p99: generateTimeSeriesData(),
+                        p95: generateTimeSeriesData(),
+                        rps: generateTimeSeriesData(),
+                        status_2xx: generateTimeSeriesData(),
+                        status_4xx: generateTimeSeriesData(),
+                        status_5xx: generateTimeSeriesData(),
+                    },
                     workloads: [
                         { id: 'checkout-w1', name: 'checkout-v1-pod1', parent: 'cluster-a', status: 'down'}, 
                         { id: 'checkout-w2', name: 'checkout-v1-pod2', parent: 'cluster-a', status: 'down'},
                         { id: 'checkout-w3', name: 'checkout-v2-pod1', parent: 'cluster-b', status: 'up'}
-                    ] 
+                    ],
+                    authPolicies: [
+                        { name: 'deny-all-untrusted', yaml: 'apiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: deny-all-untrusted\n  namespace: default\nspec:\n  selector:\n    matchLabels:\n      app: checkout-service\n  action: DENY' },
+                        { name: 'allow-payments', yaml: 'apiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: allow-payments\n  namespace: default\nspec:\n  selector:\n    matchLabels:\n      app: checkout-service\n  action: ALLOW\n  rules:\n  - from:\n    - source:\n        principals: ["cluster.local/ns/default/sa/payment-service"]' },
+                        { name: 'policy-3', yaml: '...'},
+                        { name: 'policy-4', yaml: '...'},
+                        { name: 'policy-5', yaml: '...'},
+                        { name: 'policy-6', yaml: '...'},
+                    ]
                 } },
             ],
             edges: [
@@ -390,135 +618,183 @@
         namespaceFilters.addEventListener('change', applyFilters);
         labelFilters.addEventListener('change', applyFilters);
 
-        let expandedNodeId = null;
+        const detailsPanel = document.getElementById('details-panel');
+        const detailsHeader = document.getElementById('details-header');
+        const detailsContent = document.getElementById('details-content');
 
-        cy.on('tap', 'node[type="service-failover"]', function(evt){
+        let selectedNodeId = null;
+        let latencyChart = null;
+        let rpsChart = null;
+        let statusChart = null;
+
+        const renderAuthPolicies = (policies, container) => {
+            const searchInput = container.querySelector('.auth-policy-search');
+            const paginationContainer = container.querySelector('.pagination');
+            const policyListContainer = container.querySelector('.auth-policy-list');
+            
+            let currentPage = 1;
+            const itemsPerPage = 3;
+            let filteredPolicies = policies;
+
+            const renderPage = () => {
+                policyListContainer.innerHTML = '';
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                const paginatedPolicies = filteredPolicies.slice(start, end);
+
+                paginatedPolicies.forEach(policy => {
+                    const item = document.createElement('div');
+                    item.className = 'auth-policy-item';
+                    item.innerHTML = `
+                        <div class="auth-policy-item-header">
+                            <span class="auth-policy-name">${policy.name}</span>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
+                        <div class="auth-policy-details">
+                            <pre>${policy.yaml}</pre>
+                        </div>
+                    `;
+                    policyListContainer.appendChild(item);
+
+                    item.querySelector('.auth-policy-item-header').addEventListener('click', () => {
+                        item.classList.toggle('expanded');
+                    });
+                });
+            };
+
+            const renderPagination = () => {
+                paginationContainer.innerHTML = '';
+                const pageCount = Math.ceil(filteredPolicies.length / itemsPerPage);
+                if (pageCount <= 1) return;
+
+                const prevButton = document.createElement('button');
+                prevButton.innerText = 'Prev';
+                prevButton.disabled = currentPage === 1;
+                prevButton.addEventListener('click', () => {
+                    currentPage--;
+                    renderPage();
+                    renderPagination();
+                });
+                paginationContainer.appendChild(prevButton);
+
+                const nextButton = document.createElement('button');
+                nextButton.innerText = 'Next';
+                nextButton.disabled = currentPage === pageCount;
+                nextButton.addEventListener('click', () => {
+                    currentPage++;
+                    renderPage();
+                    renderPagination();
+                });
+                paginationContainer.appendChild(nextButton);
+            };
+            
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                filteredPolicies = policies.filter(p => p.name.toLowerCase().includes(searchTerm));
+                currentPage = 1;
+                renderPage();
+                renderPagination();
+            });
+
+            renderPage();
+            renderPagination();
+        };
+
+        const createChart = (ctx, title, datasets, labels) => {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, labels: { color: '#C9D1D9' } },
+                        title: { display: true, text: title, color: '#C9D1D9' }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#8B949E' }, grid: { color: '#30363d' } },
+                        y: { ticks: { color: '#8B949E' }, grid: { color: '#30363d' } }
+                    }
+                }
+            });
+        };
+
+        cy.on('tap', 'node[type]', function(evt){
             const node = evt.target;
-            const serviceId = node.id();
-            const workloads = node.data('workloads');
+            const data = node.data();
+            selectedNodeId = data.id;
 
-            if (expandedNodeId === serviceId) {
-                cy.remove(`.expanded-path-${serviceId}`);
-                expandedNodeId = null;
-                return;
+            detailsHeader.innerHTML = `<i class="fa-solid fa-cube"></i> ${data.label}`;
+            
+            let content = `
+                <div class="details-section">
+                    <div class="chart-container"><canvas id="latency-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="rps-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="status-chart"></canvas></div>
+                </div>
+            `;
+
+            if (data.authPolicies) {
+                content += `
+                    <div class="details-section">
+                        <div class="auth-policy-header">
+                            <div class="details-section-title">Authorization Policies</div>
+                            <input type="text" class="auth-policy-search" placeholder="Search policies...">
+                        </div>
+                        <div class="auth-policy-list"></div>
+                        <div class="pagination"></div>
+                    </div>
+                `;
             }
 
-            if (expandedNodeId) {
-                cy.remove(`.expanded-path-${expandedNodeId}`);
+            detailsContent.innerHTML = content;
+            detailsPanel.classList.add('visible');
+
+            if (latencyChart) latencyChart.destroy();
+            if (rpsChart) rpsChart.destroy();
+            if (statusChart) statusChart.destroy();
+
+            latencyChart = createChart(
+                document.getElementById('latency-chart').getContext('2d'),
+                'Latency (ms)',
+                [
+                    { label: 'p99', data: data.timeSeries.p99.data, borderColor: '#F59E0B', tension: 0.1 },
+                    { label: 'p95', data: data.timeSeries.p95.data, borderColor: '#3B82F6', tension: 0.1 }
+                ],
+                data.timeSeries.p99.labels
+            );
+            
+            rpsChart = createChart(
+                document.getElementById('rps-chart').getContext('2d'),
+                'RPS',
+                [{ label: 'RPS', data: data.timeSeries.rps.data, borderColor: '#10B981', tension: 0.1 }],
+                data.timeSeries.rps.labels
+            );
+
+            statusChart = createChart(
+                document.getElementById('status-chart').getContext('2d'),
+                'Status Codes',
+                [
+                    { label: '2xx', data: data.timeSeries.status_2xx.data, borderColor: 'green', tension: 0.1 },
+                    { label: '4xx', data: data.timeSeries.status_4xx.data, borderColor: 'orange', tension: 0.1 },
+                    { label: '5xx', data: data.timeSeries.status_5xx.data, borderColor: 'red', tension: 0.1 }
+                ],
+                data.timeSeries.status_2xx.labels
+            );
+            
+            if (data.authPolicies) {
+                renderAuthPolicies(data.authPolicies, detailsContent);
             }
-            expandedNodeId = serviceId;
+        });
 
-            if (workloads) {
-                const sourceServices = cy.edges(`[target = "${serviceId}"]`).sources();
-                if (sourceServices.empty()) {
-                    console.warn('No source service found for', serviceId);
-                    return;
-                }
-                const sourceService = sourceServices.first();
-                const sourceServiceId = sourceService.id();
-                const sourceParent = sourceService.parent().id();
-
-                const pathClasses = `expanded-path expanded-path-${serviceId}`;
-
-                const clientPodId = `${serviceId}-client-pod`;
-                cy.add({
-                    group: 'nodes',
-                    data: { id: clientPodId, label: 'Client Pod', parent: sourceParent },
-                    classes: `${pathClasses} workload-node workload-up`
-                });
-                cy.add({
-                    group: 'edges',
-                    data: { id: `edge-to-${clientPodId}`, source: sourceServiceId, target: clientPodId},
-                    classes: pathClasses
-                });
-
-                const ztunnelId = `${serviceId}-ztunnel-c1`;
-                cy.add({
-                    group: 'nodes',
-                    data: { id: ztunnelId, label: 'ztunnel', parent: sourceParent },
-                    classes: `${pathClasses} infra-node`
-                });
-                cy.add({
-                    group: 'edges',
-                    data: { id: `edge-to-${ztunnelId}`, source: clientPodId, target: ztunnelId},
-                    classes: pathClasses
-                });
-
-                const healthyWorkload = workloads.find(w => w.status === 'up');
-                if(healthyWorkload) {
-                    const destParent = healthyWorkload.parent;
-
-                    const ewGatewayId = `${serviceId}-ew-gateway-c2`;
-                    cy.add({
-                        group: 'nodes',
-                        data: { id: ewGatewayId, label: 'E/W Gateway', parent: destParent },
-                        classes: `${pathClasses} infra-node`
-                    });
-                    cy.add({
-                        group: 'edges',
-                        data: { id: `edge-to-${ewGatewayId}`, source: ztunnelId, target: ewGatewayId},
-                        classes: pathClasses
-                    });
-
-                    const waypointId = `${serviceId}-waypoint-c2`;
-                    cy.add({
-                        group: 'nodes',
-                        data: { id: waypointId, label: 'Waypoint', parent: destParent },
-                        classes: `${pathClasses} infra-node`
-                    });
-                    cy.add({
-                        group: 'edges',
-                        data: { id: `edge-to-${waypointId}`, source: ewGatewayId, target: waypointId},
-                        classes: pathClasses
-                    });
-                    
-                    if(cy.getElementById(healthyWorkload.id).empty()) {
-                        cy.add({
-                            group: 'nodes',
-                            data: { id: healthyWorkload.id, label: healthyWorkload.name, parent: destParent },
-                            classes: `${pathClasses} workload-node workload-up`
-                        });
-                    }
-
-                    cy.add({
-                        group: 'edges',
-                        data: { id: `edge-to-${healthyWorkload.id}`, source: waypointId, target: healthyWorkload.id},
-                        classes: pathClasses
-                    });
-                }
-
-                const unhealthyWorkloads = workloads.filter(w => w.status === 'down');
-                unhealthyWorkloads.forEach((w) => {
-                     if(cy.getElementById(w.id).empty()) {
-                        cy.add({
-                            group: 'nodes',
-                            data: { id: w.id, label: w.name, parent: w.parent },
-                            classes: `${pathClasses} workload-node workload-down`
-                        });
-                    }
-                    cy.add({
-                        group: 'edges',
-                        data: { id: `edge-unhealthy-to-${w.id}`, source: ztunnelId, target: w.id},
-                        classes: pathClasses
-                    });
-                });
-                
-                cy.layout({ 
-                    name: 'cose',
-                    idealEdgeLength: 120,
-                    nodeRepulsion: 500000,
-                    edgeElasticity: 150,
-                    nestingFactor: 5,
-                    gravity: 80,
-                    numIter: 1000,
-                    initialTemp: 200,
-                    coolingFactor: 0.95,
-                    minTemp: 1.0,
-                    animate: 'end',
-                    animationDuration: 500,
-                    fit: false
-                }).run();
-            }
+        cy.on('tap', function(event){
+          if (event.target === cy) {
+            detailsPanel.classList.remove('visible');
+            selectedNodeId = null;
+          }
         });
 
         // Animate edges

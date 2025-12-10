@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources - Solo Enterprise</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .main-content {
+            padding-top: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        .main-content-area {
+            flex-grow: 1;
+            transition: width 0.3s;
+        }
+        .main-content-area.panel-visible {
+            width: 60%;
+        }
+
+        .yaml-panel {
+            flex: 0 0 40%;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            display: none; /* Initially hidden */
+        }
+        .yaml-panel.visible {
+            display: flex;
+        }
+        .yaml-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .yaml-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .close-yaml-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .yaml-content pre {
+            background-color: #161B22;
+            color: #C9D1D9;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 0.8rem;
+            flex-grow: 1;
+        }
+        .highlight-error {
+            background-color: rgba(239, 68, 68, 0.2);
+            padding: 2px 0;
+            border-radius: 3px;
+        }
+        .highlight-warning {
+            background-color: rgba(245, 158, 11, 0.2);
+            padding: 2px 0;
+            border-radius: 3px;
+        }
+
+        .resource-table tbody tr {
+            cursor: pointer;
+        }
+        .resource-table tbody tr:hover {
+            background-color: var(--bg-dark);
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .filter-select, .filter-input {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+        .filter-select {
+            min-width: 150px;
+        }
+        .filter-input {
+            flex-grow: 1;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .summary-icon {
+            font-size: 1.5rem;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .summary-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .resource-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .resource-table th, .resource-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .resource-table th {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .resource-table td {
+            font-size: 0.9rem;
+        }
+        .resource-name {
+            font-weight: 600;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .status-ok { background-color: var(--color-success-bg); color: var(--color-success); }
+        .status-warning { background-color: var(--color-warning-bg); color: var(--color-warning); }
+        .status-error { background-color: var(--color-error-bg); color: var(--color-error); }
+        
+        .label-tag {
+            background-color: var(--bg-dark);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .pagination button {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            margin: 0 4px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .pagination .page-info {
+            margin: 0 12px;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-subtitle">SOLO ENTERPRISE FOR</div>
+                <div class="logo-main">Istio</div>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-arrow-down-up-across-line"></i><span>Traffic</span></div>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title"><i class="fa-solid fa-globe"></i><span>Global Services</span></div>
+                    <a href="global-services.html" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
+                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
+                <div class="nav-group">
+                    <div class="nav-group-title active"><i class="fa-solid fa-cubes"></i><span>Resources</span></div>
+                    <a href="resources.html" class="nav-item sub-item active"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                </div>
+                <a href="service-graph.html" class="nav-item"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> <span>Settings</span></a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="main-content-area">
+                <div class="top-bar">
+                    <div class="breadcrumbs">
+                        <i class="fa-solid fa-cubes"></i> &nbsp; / &nbsp; <span>Resources</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <button class="refresh-btn" style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <select id="cluster-filter" class="filter-select"><option value="">All Clusters</option></select>
+                    <select id="namespace-filter" class="filter-select"><option value="">All Namespaces</option></select>
+                    <input type="text" id="label-filter" class="filter-input" placeholder="Filter by name or label (e.g., app:productpage)">
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-icon" style="background: var(--color-error-bg); color: var(--color-error);"><i class="fa-solid fa-circle-xmark"></i></div>
+                        <div class="summary-info">
+                            <div id="error-count" class="summary-value">0</div>
+                            <div class="summary-label">Errors</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon" style="background: var(--color-warning-bg); color: var(--color-warning);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="summary-info">
+                            <div id="warning-count" class="summary-value">0</div>
+                            <div class="summary-label">Warnings</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon" style="background: var(--color-success-bg); color: var(--color-success);"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="summary-info">
+                            <div id="ok-count" class="summary-value">0</div>
+                            <div class="summary-label">OK</div>
+                        </div>
+                    </div>
+                </div>
+
+                <table class="resource-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Kind</th>
+                            <th>Status</th>
+                            <th>Cluster</th>
+                            <th>Namespace</th>
+                            <th>Labels</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resource-table-body">
+                    </tbody>
+                </table>
+                <div id="pagination" class="pagination"></div>
+            </div>
+            <div id="yaml-panel" class="yaml-panel">
+                <div class="yaml-header">
+                    <h2 id="yaml-title" class="yaml-title"></h2>
+                    <button id="close-yaml-panel" class="close-yaml-btn">&times;</button>
+                </div>
+                <div class="yaml-content">
+                    <pre id="yaml-content-pre"></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // Mock Data
+        const mockResources = [];
+        const kinds = ['HTTPRoute', 'Gateway', 'VirtualService', 'DestinationRule', 'AuthorizationPolicy'];
+        const clusters = ['cluster-a', 'cluster-b', 'cluster-c'];
+        const namespaces = ['default', 'istio-system', 'app-ns-1', 'app-ns-2'];
+        const statuses = [
+            { name: 'error', weight: 1 }, 
+            { name: 'warning', weight: 2 }, 
+            { name: 'ok', weight: 7 }
+        ];
+        const labels = [
+            { key: 'app', value: 'productpage' },
+            { key: 'app', value: 'reviews' },
+            { key: 'app', value: 'details' },
+            { key: 'version', value: 'v1' },
+            { key: 'version', value: 'v2' }
+        ];
+
+        const getDummyYaml = (kind, name, namespace, problem) => {
+            let yaml = `apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ${kind}
+metadata:
+  name: ${name}
+  namespace: ${namespace}
+spec:
+  parentRefs:
+  - name: internal-gateway
+  hostnames:
+  - "${name}.example.com"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: ${name}-svc
+      port: 8080`;
+
+            if(problem) {
+                yaml += `
+---
+# ${problem.type}: ${problem.message}
+${problem.yamlSnippet}`;
+            }
+            return yaml;
+        };
+
+        const getProblem = (status) => {
+            if(status === 'error') {
+                return {
+                    type: 'Error',
+                    message: 'Invalid backendRef',
+                    yamlSnippet: `    - name: ${name}-svc\n      port: 8080 # <-- Service not found`
+                };
+            }
+            if(status === 'warning') {
+                return {
+                    type: 'Warning',
+                    message: 'Hostname conflict detected',
+                    yamlSnippet: `  hostnames:\n  - "${name}.example.com" # <-- Hostname also used by another route`
+                }
+            }
+            return null;
+        };
+        
+        let totalWeight = 0;
+        statuses.forEach(s => totalWeight += s.weight);
+
+        for(let i=0; i<140; i++) {
+            const kind = kinds[Math.floor(Math.random() * kinds.length)];
+            const name = `${kind.toLowerCase()}-${i}`;
+            const namespace = namespaces[Math.floor(Math.random() * namespaces.length)];
+            const status = statuses[Math.floor(Math.random() * statuses.length)].name;
+            const problem = getProblem(status);
+            
+            const numLabels = Math.floor(Math.random() * 3);
+            const resourceLabels = [];
+            for (let j=0; j<numLabels; j++) {
+                resourceLabels.push(labels[Math.floor(Math.random() * labels.length)]);
+            }
+
+            mockResources.push({
+                name: name,
+                kind: kind,
+                cluster: clusters[Math.floor(Math.random() * clusters.length)],
+                namespace: namespace,
+                status: status,
+                labels: resourceLabels,
+                yaml: getDummyYaml(kind, name, namespace, problem),
+                problem: problem
+            });
+        }
+        
+        // Populate filters
+        const clusterFilter = document.getElementById('cluster-filter');
+        const namespaceFilter = document.getElementById('namespace-filter');
+        
+        [...new Set(mockResources.map(r => r.cluster))].forEach(c => {
+            const option = document.createElement('option');
+            option.value = c;
+            option.innerText = c;
+            clusterFilter.appendChild(option);
+        });
+        
+        [...new Set(mockResources.map(r => r.namespace))].forEach(ns => {
+            const option = document.createElement('option');
+            option.value = ns;
+            option.innerText = ns;
+            namespaceFilter.appendChild(option);
+        });
+
+
+        const tableBody = document.getElementById('resource-table-body');
+        const paginationContainer = document.getElementById('pagination');
+        const labelFilter = document.getElementById('label-filter');
+        const yamlPanel = document.getElementById('yaml-panel');
+        const yamlTitle = document.getElementById('yaml-title');
+        const yamlContentPre = document.getElementById('yaml-content-pre');
+        const closeYamlBtn = document.getElementById('close-yaml-panel');
+        const mainContentArea = document.querySelector('.main-content-area');
+
+        let currentPage = 1;
+        const itemsPerPage = 15;
+        let filteredResources = [];
+
+        const statusOrder = { 'error': 1, 'warning': 2, 'ok': 3 };
+
+        const openYamlPanel = (resource) => {
+            yamlTitle.innerText = resource.name;
+            let yamlHtml = resource.yaml;
+            if(resource.problem) {
+                yamlHtml = yamlHtml.replace(
+                    resource.problem.yamlSnippet,
+                    `<span class="highlight-${resource.status}">${resource.problem.yamlSnippet}</span>`
+                );
+            }
+            yamlContentPre.innerHTML = yamlHtml;
+            yamlPanel.classList.add('visible');
+            mainContentArea.classList.add('panel-visible');
+        };
+
+        const closeYamlPanel = () => {
+            yamlPanel.classList.remove('visible');
+            mainContentArea.classList.remove('panel-visible');
+        };
+
+        closeYamlBtn.addEventListener('click', closeYamlPanel);
+        
+        const renderTable = () => {
+            tableBody.innerHTML = '';
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedResources = filteredResources.slice(start, end);
+
+            paginatedResources.forEach(res => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="resource-name">${res.name}</span></td>
+                    <td>${res.kind}</td>
+                    <td><span class="status-badge status-${res.status}">${res.status}</span></td>
+                    <td>${res.cluster}</td>
+                    <td>${res.namespace}</td>
+                    <td>${res.labels.map(l => `<span class="label-tag">${l.key}:${l.value}</span>`).join('')}</td>
+                `;
+                row.addEventListener('click', () => openYamlPanel(res));
+                tableBody.appendChild(row);
+            });
+        };
+
+        const renderPagination = () => {
+            paginationContainer.innerHTML = '';
+            const pageCount = Math.ceil(filteredResources.length / itemsPerPage);
+            if (pageCount <= 1) return;
+
+            const prevButton = document.createElement('button');
+            prevButton.innerText = 'Prev';
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener('click', () => {
+                currentPage--;
+                renderTable();
+                renderPagination();
+            });
+            paginationContainer.appendChild(prevButton);
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'page-info';
+            pageInfo.innerText = `Page ${currentPage} of ${pageCount}`;
+            paginationContainer.appendChild(pageInfo);
+
+            const nextButton = document.createElement('button');
+            nextButton.innerText = 'Next';
+            nextButton.disabled = currentPage === pageCount;
+            nextButton.addEventListener('click', () => {
+                currentPage++;
+                renderTable();
+                renderPagination();
+            });
+            paginationContainer.appendChild(nextButton);
+        };
+
+        const applyAllFilters = () => {
+            const cluster = clusterFilter.value;
+            const namespace = namespaceFilter.value;
+            const labelText = labelFilter.value.toLowerCase();
+            
+            filteredResources = mockResources.filter(r => {
+                const clusterMatch = !cluster || r.cluster === cluster;
+                const namespaceMatch = !namespace || r.namespace === namespace;
+                const labelMatch = !labelText || r.name.toLowerCase().includes(labelText) || 
+                                   r.labels.some(l => `${l.key}:${l.value}`.toLowerCase().includes(labelText));
+                return clusterMatch && namespaceMatch && labelMatch;
+            });
+            
+            // Sort by status
+            filteredResources.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+            // Update summary counts
+            document.getElementById('error-count').innerText = filteredResources.filter(r => r.status === 'error').length;
+            document.getElementById('warning-count').innerText = filteredResources.filter(r => r.status === 'warning').length;
+            document.getElementById('ok-count').innerText = filteredResources.filter(r => r.status === 'ok').length;
+
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        };
+
+        const debounce = (fn, delay) => {
+            let timeoutId;
+            return (...args) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => fn(...args), delay);
+            };
+        };
+
+        clusterFilter.addEventListener('change', applyAllFilters);
+        namespaceFilter.addEventListener('change', applyAllFilters);
+        labelFilter.addEventListener('input', debounce(applyAllFilters, 300));
+        
+
+        // Initial render
+        applyAllFilters();
+    </script>
+</body>
+</html>

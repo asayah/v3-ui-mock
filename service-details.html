@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
     <style>
     .nav-group {
         margin-bottom: 1rem;
@@ -89,6 +90,95 @@
         border-radius: 8px;
         padding: 20px;
     }
+    .content-grid-2-col {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+    .card .card-top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .filter-input {
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    .endpoint-group {
+        border-bottom: 1px solid var(--border-color);
+    }
+    .endpoint-group:first-child {
+        border-top: 1px solid var(--border-color);
+    }
+    .endpoint-group-toggle {
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        padding: 12px 0;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+    }
+    .endpoint-group-toggle i {
+        width: 20px;
+        text-align: center;
+        margin-right: 8px;
+        transition: transform 0.2s;
+    }
+    .endpoint-group-toggle.collapsed i {
+        transform: rotate(-90deg);
+    }
+    .endpoint-group-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .endpoint-group-content {
+        padding: 0 0 15px 28px;
+        max-height: 500px;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+    .endpoint-group-content.collapsed {
+        max-height: 0;
+        padding-bottom: 0;
+    }
+    .pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border-color);
+    }
+    .page-btns {
+        margin-left: 15px;
+    }
+    .page-btns button {
+        background: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 4px;
+        width: 30px;
+        height: 30px;
+    }
+    .page-btns button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .link-out {
+        font-size: 0.8rem;
+        color: var(--accent);
+        text-decoration: none;
+    }
+    .link-out i {
+        font-size: 0.7rem;
+    }
     </style>
 </head>
 <body>
@@ -108,7 +198,7 @@
                 </div>
                 <div class="nav-group">
                     <div class="nav-group-title"><i class="fa-solid fa-cubes"></i><span>Resources</span></div>
-                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
+                    <a href="resources.html" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
                 </div>
                 <a href="service-graph.html" class="nav-item"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
             </nav>
@@ -134,7 +224,7 @@
 
             <div class="cluster-slider-container">
                 <div class="cluster-slider-header">
-                    <h2 style="font-size: 1.2rem; font-weight: 600;">Cluster Availability</h2>
+                    <h2 style="font-size: 1.2rem; font-weight: 600;">Traffic Source</h2>
                     <input type="text" class="cluster-search" placeholder="Search clusters...">
                 </div>
                 <div class="cluster-slider">
@@ -320,48 +410,137 @@
                 </div>
             </div>
 
-            <div class="endpoints-section">
-                <h2 class="endpoints-header">Endpoints (4/5 Healthy)</h2>
-                <div class="endpoint-list">
-                    <div class="endpoint-list-item">
-                        <i class="fa-solid fa-circle-check text-success"></i>
-                        <div>
-                            <div style="font-weight: 600;">checkout-v1-abcde</div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-a / us-east-1</div>
+            <div class="content-grid-2-col">
+                <div class="card">
+                    <div class="card-top-header" style="padding: 20px 20px 0 20px;">
+                        <h3 class="endpoints-header" style="margin: 0;">Endpoints (4/5 Healthy)</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="filter-input" placeholder="Filter endpoints...">
+                            <button class="time-dropdown" style="font-size: 0.8rem;">Group by: Cluster <i class="fa-solid fa-chevron-down"></i></button>
                         </div>
                     </div>
-                    <div class="endpoint-list-item failing">
-                        <i class="fa-solid fa-triangle-exclamation text-warning"></i>
-                        <div>
-                            <div style="font-weight: 600;">checkout-v2-fghij</div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-b / us-east-2</div>
+                    <div class="endpoint-groups" style="padding: 10px 0;">
+                        <div class="endpoint-group">
+                            <button class="endpoint-group-toggle collapsed">
+                                <div class="endpoint-group-title"><i class="fa-solid fa-chevron-right"></i> <strong>Cluster A</strong> <span class="health-badge hb-success">2 / 2 Healthy</span></div>
+                            </button>
+                            <div class="endpoint-group-content collapsed">
+                                <div class="endpoint-list" style="padding: 0 20px;">
+                                    <div class="endpoint-list-item">
+                                        <i class="fa-solid fa-circle-check text-success"></i>
+                                        <div><div style="font-weight: 600;">checkout-v1-abcde</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-1</div></div>
+                                    </div>
+                                    <div class="endpoint-list-item">
+                                        <i class="fa-solid fa-circle-check text-success"></i>
+                                        <div><div style="font-weight: 600;">checkout-v1-pqrst</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-1</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint-group">
+                            <button class="endpoint-group-toggle collapsed">
+                                <div class="endpoint-group-title"><i class="fa-solid fa-chevron-right"></i> <strong>Cluster B</strong> <span class="health-badge hb-warning">0 / 1 Healthy</span></div>
+                            </button>
+                            <div class="endpoint-group-content collapsed">
+                                <div class="endpoint-list" style="padding: 0 20px;">
+                                    <div class="endpoint-list-item failing">
+                                        <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+                                        <div><div style="font-weight: 600;">checkout-v2-fghij</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-2</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint-group">
+                            <button class="endpoint-group-toggle collapsed">
+                                <div class="endpoint-group-title"><i class="fa-solid fa-chevron-right"></i> <strong>Cluster C</strong> <span class="health-badge hb-success">2 / 2 Healthy</span></div>
+                            </button>
+                            <div class="endpoint-group-content collapsed">
+                                <div class="endpoint-list" style="padding: 0 20px;">
+                                     <div class="endpoint-list-item">
+                                        <i class="fa-solid fa-circle-check text-success"></i>
+                                        <div><div style="font-weight: 600;">checkout-v1-klmno</div><div style="font-size: 0.8rem; color: var(--text-secondary);">eu-west-1</div></div>
+                                    </div>
+                                    <div class="endpoint-list-item">
+                                        <i class="fa-solid fa-circle-check text-success"></i>
+                                        <div><div style="font-weight: 600;">checkout-v1-uvwxy</div><div style="font-size: 0.8rem; color: var(--text-secondary);">eu-west-1</div></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="endpoint-list-item">
-                        <i class="fa-solid fa-circle-check text-success"></i>
-                        <div>
-                            <div style="font-weight: 600;">checkout-v1-klmno</div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-c / eu-west-1</div>
-                        </div>
+                    <div class="pagination" style="padding: 15px 20px;">
+                        <span>Showing 1-5 of 5</span>
+                        <div class="page-btns"><button disabled=""><i class="fa-solid fa-chevron-left"></i></button><button disabled=""><i class="fa-solid fa-chevron-right"></i></button></div>
                     </div>
-                    <div class="endpoint-list-item">
-                        <i class="fa-solid fa-circle-check text-success"></i>
-                        <div>
-                            <div style="font-weight: 600;">checkout-v1-pqrst</div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-a / us-east-1</div>
-                        </div>
+                </div>
+                <div class="card">
+                    <div class="card-top-header" style="padding: 20px 20px 10px 20px;">
+                        <h3 style="margin: 0;">Service Context</h3>
+                        <a href="service-graph.html" class="link-out">Full Graph <i class="fa-solid fa-up-right-from-square"></i></a>
                     </div>
-                    <div class="endpoint-list-item">
-                        <i class="fa-solid fa-circle-check text-success"></i>
-                        <div>
-                            <div style="font-weight: 600;">checkout-v1-uvwxy</div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);">cluster-c / eu-west-1</div>
-                        </div>
+                    <div style="height: 100%; min-height: 400px; padding: 10px; box-sizing: border-box;">
+                        <a href="service-graph.html" id="mini-cy-link" style="display:block; width: 100%; height: 100%;">
+                            <div id="mini-cy" style="width: 100%; height: 100%;"></div>
+                        </a>
                     </div>
                 </div>
             </div>
 
         </main>
     </div>
+    <script>
+        // --- Endpoints ---
+        document.querySelectorAll('.endpoint-group-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('i');
+                button.classList.toggle('collapsed');
+                content.classList.toggle('collapsed');
+                icon.classList.toggle('fa-chevron-right');
+                icon.classList.toggle('fa-chevron-down');
+            });
+        });
+
+        // --- Mini Graph ---
+        if (typeof cytoscape !== 'undefined') {
+            const miniCy = cytoscape({
+                container: document.getElementById('mini-cy'),
+                elements: {
+                    nodes: [
+                        { data: { id: 'frontend-app', label: 'Frontend' } },
+                        { data: { id: 'payment-service', label: 'Payment' } },
+                        { data: { id: 'checkout-service', label: 'Checkout', type: 'service-failover' } },
+                    ],
+                    edges: [
+                        { data: { source: 'frontend-app', target: 'checkout-service' } },
+                        { data: { source: 'payment-service', target: 'checkout-service' } },
+                        { data: { source: 'checkout-service', target: 'payment-service' } },
+                    ]
+                },
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#2B313C', 'border-width': 2, 'border-color': '#58A6FF',
+                            'label': 'data(label)', 'color': '#C9D1D9', 'font-size': 11,
+                            'text-valign': 'bottom', 'text-margin-y': 6, 'width': 40, 'height': 40,
+                        }
+                    },
+                    { selector: '[type = "service-failover"]', style: { 'border-color': '#F59E0B' } },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 1.5, 'line-color': '#484F58', 'target-arrow-color': '#484F58',
+                            'target-arrow-shape': 'triangle', 'curve-style': 'bezier'
+                        }
+                    },
+                ],
+                layout: { name: 'grid', rows: 1, cols: 3, padding: 10 },
+                userZoomingEnabled: false,
+                userPanningEnabled: false,
+                autolock: true,
+            });
+        }
+    </script>
 </body>
 </html>
