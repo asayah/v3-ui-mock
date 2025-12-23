@@ -114,7 +114,7 @@ body {
 .summary-value { font-size: 2.2rem; font-weight: 700; line-height: 1; }
 .section-header-controls { display: flex; justify-content: space-between; align-items: center; }
 .time-dropdown, .refresh-btn { cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); border-radius: 8px; }
-.grid-monitoring { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.grid-monitoring { display: grid; grid-template-columns: repeat(3, 1fr); }
 .chart-card { min-height: 300px; display: flex; flex-direction: column; padding: 20px; }
 .chart-container { flex: 1; display: flex; flex-direction: column; }
 .chart-svg { width: 100%; height: 100%; display: block; }
@@ -261,4 +261,31 @@ body {
     font-size: 0.8rem;
     color: var(--text-secondary);
     margin-top: 4px;
+}
+
+.filter-option .status-count {
+    margin-left: auto; /* Push the count to the right */
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.filter-option .healthy-count {
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+.filter-option .warning-count {
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
+}
+
+.filter-option .error-count {
+    background-color: var(--color-error-bg);
+    color: var(--color-error);
 }
