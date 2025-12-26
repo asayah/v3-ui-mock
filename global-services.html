@@ -1,3 +1,11 @@
+<!--
+    Usecase: Global Service Failover Monitoring and Restoration
+    
+    This page represents the view that Cesar, the Platform Engineer, would see when a failover is in progress.
+
+    - The 'checkout.acme.int' service is marked as "Failing Over".
+    - The locality shows that traffic is being shifted from 'us-east-1' to 'us-west-2'.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -123,19 +131,16 @@
                             <tr><th>Status</th><th>Global Service</th><th>Visibility</th><th>Locality</th><th>Active Endpoints</th><th>Traffic <span style="font-size: 0.7em;">(15 min)</span></th><th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                            <tr style="background-color: rgba(245, 158, 11, 0.05);">
-                                <td><i class="fa-solid fa-triangle-exclamation status-icon text-warning"></i></td>
+                            <tr style="background-color: rgba(239, 68, 68, 0.05);">
+                                <td><i class="fa-solid fa-triangle-exclamation status-icon text-error"></i></td>
                                 <td>
-                                    <a href="service-details.html" style="color: white; font-weight: 600; text-decoration: none;">checkout</a>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">checkout.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: payments</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div>
+                                    <a href="service-details.html" style="color: white; text-decoration: none;">checkout.acme.int</a>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
-                                    <span title="us-east-1(use1-az1), us-west-1(usw1-az2), eu-central-1(euc1-az3)">3 Localities</span>
+                                    <span title="us-east-1(use1-az1), us-west-1(usw1-az2), eu-central-1(euc1-az3)">us-east-1 <i class="fa-solid fa-arrow-right"></i> us-west-2</span>
                                 </td>
-                                <td>3/4</td>
+                                <td>3/6</td>
                                 <td>
                                     <div class="rps-bar-graph">
                                         <div class="bar bar-2xx" style="width: 80%;"></div>
@@ -147,16 +152,13 @@
                                         <span>5xx: <span style="font-weight: 500; color: var(--color-error);">0</span></span>
                                     </div>
                                 </td>
-                                <td class="text-warning">Degraded</td>
+                                <td class="text-error">Failing Over</td>
                                 <td><button class="action-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
                             </tr>
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">catalog</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">catalog.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: store</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div>
+                                    <span style="">catalog.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -179,10 +181,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">user-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">users.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: identity</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div>
+                                    <span style="">users.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -205,10 +204,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">payment-gateway</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">payments.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: payments</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div>
+                                    <span style="">payments.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -231,10 +227,7 @@
                             <tr style="background-color: rgba(239, 68, 68, 0.05);">
                                 <td><i class="fa-solid fa-circle-xmark status-icon text-error" style="color: var(--color-error)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">inventory-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">inventory.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: warehouse</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div>
+                                    <span style="">inventory.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -257,10 +250,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">notification-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">notifications.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: messaging</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div>
+                                    <span style="">notifications.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -283,10 +273,7 @@
                             <tr style="background-color: rgba(245, 158, 11, 0.05);">
                                 <td><i class="fa-solid fa-triangle-exclamation status-icon text-warning"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">search-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">search.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: store</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div>
+                                    <span style="">search.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -310,10 +297,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">analytics-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">analytics.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: data</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div>
+                                    <span style="">analytics.acme.int</span>
                                 </td>
                                 <td>Segment</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -336,10 +320,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">auth-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">auth.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: identity</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div>
+                                    <span>auth.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -362,10 +343,7 @@
                             <tr style="background-color: rgba(245, 158, 11, 0.05);">
                                 <td><i class="fa-solid fa-triangle-exclamation status-icon text-warning"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">shipping-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">shipping.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: logistics</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div>
+                                    <span>shipping.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -389,10 +367,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">recommendation-engine</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">recommendations.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: ml</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div>
+                                    <span>recommendations.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -415,10 +390,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">order-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">orders.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: store</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div>
+                                    <span>orders.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -441,10 +413,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">review-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">reviews.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: store</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span></div>
+                                    <span>reviews.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -467,10 +436,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">cart-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">cart.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: store</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=core</span></div>
+                                    <span>cart.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">
@@ -493,10 +459,7 @@
                             <tr>
                                 <td><i class="fa-solid fa-circle-check status-icon text-success" style="color: var(--color-success)"></i></td>
                                 <td>
-                                    <span style="font-weight: 600;">billing-service</span>
-                                    <div style="color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-top: 4px;">billing.acme.int</div>
-                                    <div style="color: var(--text-secondary); margin-top: 4px;">Namespace: payments</div>
-                                    <div style="margin-top: 4px;"><span class="label-pill">env=prod</span><span class="label-pill">tier=critical</span></div>
+                                    <span>billing.acme.int</span>
                                 </td>
                                 <td>Global</td>
                                 <td style="color: var(--text-secondary); font-size: 0.8rem;">

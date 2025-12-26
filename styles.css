@@ -289,3 +289,34 @@ body {
     background-color: var(--color-error-bg);
     color: var(--color-error);
 }
+
+/* Tab Styles */
+.tab-container {
+    margin-bottom: 20px;
+}
+.tab-buttons {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    position: relative;
+    border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--accent);
+}
+.tab-content {
+    display: none;
+    padding-top: 20px;
+}
+.tab-content.active {
+    display: block;
+}

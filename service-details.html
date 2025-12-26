@@ -1,3 +1,14 @@
+<!--
+    Usecase: Global Service Failover Monitoring and Restoration
+    
+    This page represents the view that Cesar, the Platform Engineer, would see when a failover is in progress.
+
+    - The header shows the service is "FAILING OVER".
+    - The "Traffic by Locality" chart shows traffic to us-east-1 dropping to zero, while traffic to us-west-2 and eu-central-1 spikes.
+    - The "Events" timeline shows the sequence of events that led to the failover.
+    - The "Endpoints" list shows the health of each endpoint, with the ones in us-east-1 failing.
+    - The mini graph provides a simplified view of the failover.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +18,6 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
     <style>
     .nav-group {
         margin-bottom: 1rem;
@@ -84,6 +94,191 @@
     .endpoint-list-item.failing {
         background-color: rgba(239, 68, 68, 0.1);
         border: 1px solid var(--color-error);
+    }
+    .endpoint-type-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        background-color: var(--bg-dark);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+    .endpoint-status-icon {
+        font-size: 0.9rem;
+    }
+    .endpoint-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .endpoint-status-badge.status-ok {
+        background-color: rgba(34, 197, 94, 0.15);
+        color: var(--color-success);
+        border: 1px solid var(--color-success);
+    }
+    .endpoint-status-badge.status-warning {
+        background-color: rgba(251, 146, 60, 0.15);
+        color: var(--color-warning);
+        border: 1px solid var(--color-warning);
+    }
+    .endpoint-status-badge.status-error {
+        background-color: rgba(239, 68, 68, 0.15);
+        color: var(--color-error);
+        border: 1px solid var(--color-error);
+    }
+    .endpoint-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .endpoint-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    .locality-header {
+        padding: 12px 20px;
+        background-color: var(--bg-dark);
+        border-bottom: 2px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        margin-top: 15px;
+    }
+    .locality-header:first-child {
+        margin-top: 0;
+    }
+    .endpoints-flat-list {
+        padding: 0;
+    }
+    .endpoints-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .endpoints-table thead {
+        background-color: var(--bg-dark);
+        border-bottom: 2px solid var(--border-color);
+    }
+    .endpoints-table th {
+        padding: 12px 20px;
+        text-align: left;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .endpoints-table td {
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .endpoints-table tbody tr:hover {
+        background-color: var(--bg-dark);
+    }
+    .endpoints-table tbody tr.failing {
+        background-color: rgba(239, 68, 68, 0.05);
+    }
+    .endpoint-name-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .endpoint-details-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        flex-wrap: wrap;
+    }
+    .pod-status-error {
+        color: var(--color-error) !important;
+        font-weight: 600;
+    }
+    .pod-status-warning {
+        color: var(--color-warning) !important;
+        font-weight: 600;
+    }
+    .pod-status-ready {
+        color: var(--color-success) !important;
+    }
+    .timeline-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .timeline-item:hover {
+        background-color: var(--bg-dark);
+    }
+    .timeline-item.expanded {
+        background-color: var(--bg-dark);
+    }
+    .timeline-item.live-event {
+        border-left: 3px solid var(--color-error);
+        background-color: rgba(239, 68, 68, 0.05);
+    }
+    .timeline-item.live-event:hover {
+        background-color: rgba(239, 68, 68, 0.1);
+    }
+    .tl-time {
+        min-width: 60px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+    .tl-content {
+        flex: 1;
+    }
+    .tl-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text-primary);
+    }
+    .tl-desc {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .tl-cluster {
+        font-size: 0.75rem;
+        color: var(--accent);
+        margin-top: 4px;
+        font-weight: 500;
+    }
+    .tl-failover-details {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: var(--bg-card);
+        border-radius: 6px;
+        border-left: 3px solid var(--color-warning);
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        display: none;
+    }
+    .timeline-item.expanded .tl-failover-details {
+        display: block;
+    }
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
     }
     .failover-policy-card {
         background-color: var(--bg-card);
@@ -179,6 +374,436 @@
     .link-out i {
         font-size: 0.7rem;
     }
+    .cluster-select {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+    .cluster-select option {
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+        padding: 8px;
+    }
+    .cluster-filter-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .filter-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+    }
+    .filter-item-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+    .filter-input-compact {
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        width: 180px;
+        transition: all 0.2s;
+    }
+    .filter-input-compact:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+    .filter-select-compact {
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 6px 28px 6px 10px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23C9D1D9' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        min-width: 140px;
+        transition: all 0.2s;
+    }
+    .filter-select-compact:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+    .filter-select-compact[multiple] {
+        padding: 6px 10px;
+        min-height: auto;
+        max-height: 120px;
+        overflow-y: auto;
+        background-image: none;
+    }
+    .filter-select-compact[multiple] option {
+        padding: 4px 6px;
+        font-size: 0.8rem;
+    }
+    .filter-select-compact[multiple] option:checked {
+        background-color: var(--accent);
+        color: white;
+    }
+    .filter-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .filter-badge:hover {
+        background-color: var(--bg-card);
+        border-color: var(--accent);
+    }
+    .filter-badge i {
+        font-size: 0.7rem;
+        opacity: 0.7;
+    }
+    .filter-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .filter-dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 5px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px;
+        min-width: 200px;
+        max-height: 250px;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .filter-dropdown.active .filter-dropdown-content {
+        display: block;
+    }
+    .filter-dropdown-option {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .filter-dropdown-option:hover {
+        background-color: var(--bg-dark);
+    }
+    .filter-dropdown-option input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
+    }
+    .filter-clear-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .filter-clear-btn:hover {
+        background-color: var(--bg-dark);
+        color: var(--text-primary);
+    }
+    .label-input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .label-input-group input {
+        flex: 1;
+    }
+    .label-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .label-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        color: var(--text-primary);
+    }
+    .label-tag .remove {
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    .label-tag .remove:hover {
+        opacity: 1;
+    }
+    .region-zone-tree {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+    .region-item {
+        margin-bottom: 8px;
+    }
+    .region-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    .region-header:hover {
+        background-color: var(--bg-dark);
+    }
+    .region-header i {
+        font-size: 0.7rem;
+        transition: transform 0.2s;
+    }
+    .region-header.collapsed i {
+        transform: rotate(-90deg);
+    }
+    .zone-list {
+        padding-left: 24px;
+        margin-top: 4px;
+        display: block;
+    }
+    .zone-list.collapsed {
+        display: none;
+    }
+    .zone-item {
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .zone-item:hover {
+        background-color: var(--bg-dark);
+    }
+    .zone-item input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
+    }
+    .zone-item label {
+        cursor: pointer;
+        margin: 0;
+        flex: 1;
+    }
+    .cluster-results {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+    }
+    .cluster-results-list {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+    }
+    .cluster-result-item {
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .cluster-result-item:hover {
+        background-color: var(--bg-dark);
+        border-color: var(--accent);
+    }
+    .cluster-result-item.selected {
+        background-color: rgba(251, 146, 60, 0.25);
+        border: 2px solid var(--color-warning);
+        box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.15), 0 2px 8px rgba(251, 146, 60, 0.2);
+        transform: scale(1.03);
+        font-weight: 600;
+        position: relative;
+    }
+    .cluster-result-item.selected::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: var(--color-warning);
+        border-radius: 6px 0 0 6px;
+    }
+    .cluster-result-item.selected .cluster-result-name {
+        font-weight: 700;
+    }
+    .cluster-result-item.selected .cluster-result-name span {
+        color: var(--text-primary);
+    }
+    .cluster-result-item.has-failover {
+        border-color: var(--color-warning);
+    }
+    .cluster-result-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+    }
+    .cluster-pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .pagination-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .pagination-btn {
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .pagination-btn:hover:not(:disabled) {
+        background-color: var(--bg-card);
+        border-color: var(--accent);
+    }
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .pagination-page-numbers {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .pagination-page-btn {
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    .pagination-page-btn:hover:not(.active) {
+        background-color: var(--bg-card);
+        border-color: var(--accent);
+    }
+    .pagination-page-btn.active {
+        background-color: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+    .pagination-per-page {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .pagination-per-page select {
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    .source-cluster-summary {
+        background-color: var(--bg-card);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-color);
+    }
+    .summary-header {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .summary-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    .summary-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .summary-detail {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
     </style>
 </head>
 <body>
@@ -212,276 +837,764 @@
 
             <div class="details-header">
                 <div class="dh-left">
-                    <h1>checkout <span class="health-badge hb-warning"><i class="fa-solid fa-triangle-exclamation"></i> Warning</span></h1>
+                    <h1>checkout.acme.int <span class="health-badge hb-error"><i class="fa-solid fa-triangle-exclamation"></i> FAILING OVER</span></h1>
                     <div style="display: flex; gap: 15px; color: var(--text-secondary); font-size: 0.9rem;">
                         <span><i class="fa-solid fa-box"></i> Namespace: payments</span>
-                        <span><i class="fa-solid fa-globe"></i> Visibility: Segment</span>
-                        <span><i class="fa-solid fa-layer-group"></i> Segment: default</span>
+                        <span><i class="fa-solid fa-globe"></i> Visibility: Global</span>
                     </div>
                 </div>
                 <div class="dh-right"><button class="graph-btn"><i class="fa-solid fa-file-code"></i> View YAML</button></div>
             </div>
 
-            <div class="cluster-slider-container">
-                <div class="cluster-slider-header">
-                    <h2 style="font-size: 1.2rem; font-weight: 600;">Traffic Source</h2>
-                    <input type="text" class="cluster-search" placeholder="Search clusters...">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="traffic-source">Traffic Source</button>
+                    <button class="tab-btn" data-tab="backend">Endpoints</button>
+                    <button class="tab-btn" data-tab="events">Events</button>
                 </div>
-                <div class="cluster-slider">
-                    <div class="ca-card" style="border-color: var(--color-warning);">
-                        <div class="ca-header">cluster-b <i class="fa-solid fa-triangle-exclamation text-warning"></i></div>
-                        <div class="ca-stat"><span>Locality</span> <span>us-east-2</span></div>
-                        <div class="ca-stat"><span>RPS</span> <span>580</span></div>
-                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferZone</span></div>
-                    </div>
-                    <div class="ca-card" style="border-color: var(--color-warning);">
-                        <div class="ca-header">cluster-d <i class="fa-solid fa-triangle-exclamation text-warning"></i></div>
-                        <div class="ca-stat"><span>Locality</span> <span>ap-south-1</span></div>
-                        <div class="ca-stat"><span>RPS</span> <span>120</span></div>
-                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferRegion</span></div>
-                    </div>
-                    <div class="ca-card">
-                        <div class="ca-header">cluster-a <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
-                        <div class="ca-stat"><span>Locality</span> <span>us-east-1</span></div>
-                        <div class="ca-stat"><span>RPS</span> <span>330</span></div>
-                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferClose</span></div>
-                    </div>
-                    <div class="ca-card">
-                        <div class="ca-header">cluster-c <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
-                        <div class="ca-stat"><span>Locality</span> <span>eu-west-1</span></div>
-                        <div class="ca-stat"><span>RPS</span> <span>210</span></div>
-                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">Custom</span></div>
-                    </div>
-                    <div class="ca-card">
-                        <div class="ca-header">cluster-e <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
-                        <div class="ca-stat"><span>Locality</span> <span>ap-northeast-1</span></div>
-                        <div class="ca-stat"><span>RPS</span> <span>150</span></div>
-                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferZone</span></div>
-                    </div>
-                    <div class="ca-card">
-                        <div class="ca-header">cluster-f <i class="fa-solid fa-circle-check status-success" style="color: var(--color-success)"></i></div>
-                        <div class="ca-stat"><span>Locality</span> <span>sa-east-1</span></div>
-                        <div class="ca-stat"><span>RPS</span> <span>90</span></div>
-                        <div class="ca-stat"><span>Policy</span> <span style="font-weight: 600;">preferClose</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="details-grid">
-                <div class="card">
-                    <div class="card-top-header">
-                        <h3>Traffic by Locality</h3>
-                        <button class="time-dropdown" style="font-size: 0.8rem;">Last 30 mins <i class="fa-solid fa-chevron-down"></i></button>
-                    </div>
-                    <div style="padding: 15px 20px 0 20px;">
-                        <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
-                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
-                                <span style="color: var(--text-secondary);">us-east-1</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">330 RPS</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <div style="width: 12px; height: 12px; background-color: var(--color-error); border-radius: 2px;"></div>
-                                <span style="color: var(--text-secondary);">us-east-2</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">580 RPS</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
-                                <span style="color: var(--text-secondary);">eu-west-1</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">210 RPS</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="height: 300px; position: relative; padding: 0 20px 20px 20px;">
-                        <svg viewBox="0 0 800 300" class="chart-svg" preserveAspectRatio="none" style="width: 100%; height: 100%;">
-                            <!-- Grid lines -->
-                            <line x1="0" y1="250" x2="800" y2="250" style="stroke:#27272a; stroke-width:1"></line>
-                            <line x1="0" y1="200" x2="800" y2="200" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            <line x1="0" y1="150" x2="800" y2="150" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            <line x1="0" y1="100" x2="800" y2="100" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            <line x1="0" y1="50" x2="800" y2="50" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            
-                            <!-- Y-axis labels -->
-                            <text x="5" y="255" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">0</text>
-                            <text x="5" y="205" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">200</text>
-                            <text x="5" y="155" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">400</text>
-                            <text x="5" y="105" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">600</text>
-                            <text x="5" y="55" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">800</text>
-                            
-                            <!-- us-east-1 (warning/orange) - starts high, drops, then recovers -->
-                            <path d="M0,180 L100,190 L200,200 L300,210 L400,220 L500,215 L600,200 L700,195 L800,190" 
-                                  style="fill:none; stroke:var(--color-warning); stroke-width:2.5; opacity:0.9"></path>
-                            <circle cx="0" cy="180" r="4" fill="var(--color-warning)"></circle>
-                            <circle cx="400" cy="220" r="4" fill="var(--color-warning)"></circle>
-                            <circle cx="800" cy="190" r="4" fill="var(--color-warning)"></circle>
-                            
-                            <!-- us-east-2 (error/red) - starts low, spikes up (failover) -->
-                            <path d="M0,240 L100,230 L200,220 L300,100 L400,80 L500,90 L600,100 L700,110 L800,120" 
-                                  style="fill:none; stroke:var(--color-error); stroke-width:2.5; opacity:0.9"></path>
-                            <circle cx="0" cy="240" r="4" fill="var(--color-error)"></circle>
-                            <circle cx="300" cy="100" r="4" fill="var(--color-error)"></circle>
-                            <circle cx="400" cy="80" r="4" fill="var(--color-error)"></circle>
-                            <circle cx="800" cy="120" r="4" fill="var(--color-error)"></circle>
-                            
-                            <!-- eu-west-1 (success/green) - stable -->
-                            <path d="M0,220 L100,215 L200,210 L300,205 L400,200 L500,205 L600,210 L700,215 L800,220" 
-                                  style="fill:none; stroke:var(--color-success); stroke-width:2.5; opacity:0.9"></path>
-                            <circle cx="0" cy="220" r="4" fill="var(--color-success)"></circle>
-                            <circle cx="400" cy="200" r="4" fill="var(--color-success)"></circle>
-                            <circle cx="800" cy="220" r="4" fill="var(--color-success)"></circle>
-                        </svg>
-                        <div class="chart-x-axis" style="display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px;">
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">11:45</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">11:50</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">11:55</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:00</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:05</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:10</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:15</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-top-header">
-                        <h3>Latency</h3>
-                        <button class="time-dropdown" style="font-size: 0.8rem;">Last 30 mins <i class="fa-solid fa-chevron-down"></i></button>
-                    </div>
-                    <div style="padding: 15px 20px 0 20px;">
-                        <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
-                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
-                                <span style="color: var(--text-secondary);">p99</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">120ms</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <div style="width: 12px; height: 12px; background-color: var(--color-info, #38bdf8); border-radius: 2px;"></div>
-                                <span style="color: var(--text-secondary);">p90</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">60ms</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-                                <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
-                                <span style="color: var(--text-secondary);">p50</span>
-                                <span style="color: var(--text-primary); font-weight: 600;">25ms</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="height: 300px; position: relative; padding: 0 20px 20px 20px;">
-                        <svg viewBox="0 0 800 300" class="chart-svg" preserveAspectRatio="none" style="width: 100%; height: 100%;">
-                            <!-- Grid lines -->
-                            <line x1="0" y1="250" x2="800" y2="250" style="stroke:#27272a; stroke-width:1"></line>
-                            <line x1="0" y1="200" x2="800" y2="200" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            <line x1="0" y1="150" x2="800" y2="150" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            <line x1="0" y1="100" x2="800" y2="100" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            <line x1="0" y1="50" x2="800" y2="50" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
-                            
-                            <!-- Y-axis labels -->
-                            <text x="5" y="255" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">0ms</text>
-                            <text x="5" y="205" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">50ms</text>
-                            <text x="5" y="155" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">100ms</text>
-                            <text x="5" y="105" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">150ms</text>
-                            <text x="5" y="55" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">200ms</text>
-                            
-                            <!-- p50 (success/green) - stable low latency -->
-                            <path d="M0,240 L100,242 L200,238 L300,240 L400,235 L500,238 L600,240 L700,235 L800,238" 
-                                  style="fill:none; stroke:var(--color-success); stroke-width:2.5; opacity:0.9"></path>
-                            
-                            <!-- p90 (info/blue) - stable medium latency -->
-                            <path d="M0,220 L100,225 L200,220 L300,223 L400,200 L500,210 L600,215 L700,220 L800,218" 
-                                  style="fill:none; stroke:var(--color-info, #38bdf8); stroke-width:2.5; opacity:0.9"></path>
-
-                            <!-- p99 (warning/orange) - spikes around failover -->
-                            <path d="M0,200 L100,205 L200,195 L300,80 L400,60 L500,150 L600,180 L700,190 L800,185" 
-                                  style="fill:none; stroke:var(--color-warning); stroke-width:2.5; opacity:0.9"></path>
-                        </svg>
-                        <div class="chart-x-axis" style="display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px;">
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">11:45</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">11:50</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">11:55</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:00</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:05</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:10</span>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">12:15</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-top-header"><h3>Events</h3></div>
-                    <div class="timeline-item alert"><div class="tl-time">12:01</div><div class="tl-content"><div class="tl-title">Failover</div><div class="tl-desc">Shifted to us-east zone2</div></div></div>
-                </div>
-            </div>
-
-            <div class="content-grid-2-col">
-                <div class="card">
-                    <div class="card-top-header" style="padding: 20px 20px 0 20px;">
-                        <h3 class="endpoints-header" style="margin: 0;">Endpoints (4/5 Healthy)</h3>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" class="filter-input" placeholder="Filter endpoints...">
-                            <button class="time-dropdown" style="font-size: 0.8rem;">Group by: Cluster <i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
-                    </div>
-                    <div class="endpoint-groups" style="padding: 10px 0;">
-                        <div class="endpoint-group">
-                            <button class="endpoint-group-toggle collapsed">
-                                <div class="endpoint-group-title"><i class="fa-solid fa-chevron-right"></i> <strong>Cluster A</strong> <span class="health-badge hb-success">2 / 2 Healthy</span></div>
+                <div id="traffic-source" class="tab-content active">
+                    <div class="cluster-filter-panel">
+                        <div class="cluster-slider-header" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <h2 style="font-size: 1.2rem; font-weight: 600;">Traffic Source Clusters</h2>
+                            <button class="filter-clear-btn" id="clear-filters" style="display: none;">
+                                <i class="fa-solid fa-xmark"></i> Clear Filters
                             </button>
-                            <div class="endpoint-group-content collapsed">
-                                <div class="endpoint-list" style="padding: 0 20px;">
-                                    <div class="endpoint-list-item">
-                                        <i class="fa-solid fa-circle-check text-success"></i>
-                                        <div><div style="font-weight: 600;">checkout-v1-abcde</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-1</div></div>
+                        </div>
+                        <div class="filter-bar">
+                            <div class="filter-item">
+                                <i class="fa-solid fa-magnifying-glass" style="color: var(--text-secondary); font-size: 0.85rem;"></i>
+                                <input type="text" id="filter-cluster-name" class="filter-input-compact" placeholder="Search cluster name...">
+                            </div>
+                            <div class="filter-item">
+                                <span class="filter-item-label">Status:</span>
+                                <div class="filter-dropdown" id="filter-status-dropdown">
+                                    <button class="filter-badge" id="filter-status-badge">
+                                        <span>All Status</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                    <div class="filter-dropdown-content">
+                                        <div class="filter-dropdown-option">
+                                            <input type="checkbox" id="status-warning" value="warning">
+                                            <label for="status-warning" style="cursor: pointer; margin: 0;"><i class="fa-solid fa-triangle-exclamation text-warning"></i> Warning</label>
+                                        </div>
+                                        <div class="filter-dropdown-option">
+                                            <input type="checkbox" id="status-ok" value="ok">
+                                            <label for="status-ok" style="cursor: pointer; margin: 0;"><i class="fa-solid fa-circle-check text-success"></i> OK</label>
+                                        </div>
                                     </div>
-                                    <div class="endpoint-list-item">
-                                        <i class="fa-solid fa-circle-check text-success"></i>
-                                        <div><div style="font-weight: 600;">checkout-v1-pqrst</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-1</div></div>
+                                </div>
+                            </div>
+                            <div class="filter-item">
+                                <span class="filter-item-label">Labels:</span>
+                                <div class="filter-dropdown" id="filter-labels-dropdown" style="min-width: 300px;">
+                                    <button class="filter-badge" id="filter-labels-badge">
+                                        <span>Add Labels</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                    <div class="filter-dropdown-content" style="min-width: 300px;">
+                                        <div style="padding: 8px;">
+                                            <div class="label-input-group">
+                                                <input type="text" id="label-key-input" class="filter-input-compact" placeholder="key" style="width: 120px;">
+                                                <span>=</span>
+                                                <input type="text" id="label-value-input" class="filter-input-compact" placeholder="value" style="width: 120px;">
+                                                <button id="add-label-btn" style="background: var(--accent); color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 0.8rem;">
+                                                    <i class="fa-solid fa-plus"></i> Add
+                                                </button>
+                                            </div>
+                                            <div class="label-tags" id="label-tags-container"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="filter-item">
+                                <span class="filter-item-label">Localities:</span>
+                                <div class="filter-dropdown" id="filter-localities-dropdown" style="min-width: 250px;">
+                                    <button class="filter-badge" id="filter-localities-badge">
+                                        <span>All Localities</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                    <div class="filter-dropdown-content region-zone-tree" style="min-width: 250px;">
+                                        <div class="region-item">
+                                            <div class="region-header" data-region="us-east">
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                                <input type="checkbox" id="region-us-east" data-region="us-east" style="margin: 0;">
+                                                <label for="region-us-east" style="cursor: pointer; margin: 0; flex: 1;">us-east</label>
+                                            </div>
+                                            <div class="zone-list">
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-east-1" value="us-east-1" data-region="us-east">
+                                                    <label for="zone-us-east-1">us-east-1</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-east-2" value="us-east-2" data-region="us-east">
+                                                    <label for="zone-us-east-2">us-east-2</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-east-1a" value="us-east-1a" data-region="us-east">
+                                                    <label for="zone-us-east-1a">us-east-1a</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-east-1b" value="us-east-1b" data-region="us-east">
+                                                    <label for="zone-us-east-1b">us-east-1b</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-east-1c" value="us-east-1c" data-region="us-east">
+                                                    <label for="zone-us-east-1c">us-east-1c</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-east-2a" value="us-east-2a" data-region="us-east">
+                                                    <label for="zone-us-east-2a">us-east-2a</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-east-2b" value="us-east-2b" data-region="us-east">
+                                                    <label for="zone-us-east-2b">us-east-2b</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="region-item">
+                                            <div class="region-header" data-region="us-west">
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                                <input type="checkbox" id="region-us-west" data-region="us-west" style="margin: 0;">
+                                                <label for="region-us-west" style="cursor: pointer; margin: 0; flex: 1;">us-west</label>
+                                            </div>
+                                            <div class="zone-list">
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-west-1" value="us-west-1" data-region="us-west">
+                                                    <label for="zone-us-west-1">us-west-1</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-us-west-2" value="us-west-2" data-region="us-west">
+                                                    <label for="zone-us-west-2">us-west-2</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="region-item">
+                                            <div class="region-header" data-region="eu">
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                                <input type="checkbox" id="region-eu" data-region="eu" style="margin: 0;">
+                                                <label for="region-eu" style="cursor: pointer; margin: 0; flex: 1;">eu</label>
+                                            </div>
+                                            <div class="zone-list">
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-eu-west-1" value="eu-west-1" data-region="eu">
+                                                    <label for="zone-eu-west-1">eu-west-1</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-eu-central-1" value="eu-central-1" data-region="eu">
+                                                    <label for="zone-eu-central-1">eu-central-1</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-eu-west-1a" value="eu-west-1a" data-region="eu">
+                                                    <label for="zone-eu-west-1a">eu-west-1a</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="region-item">
+                                            <div class="region-header" data-region="ap">
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                                <input type="checkbox" id="region-ap" data-region="ap" style="margin: 0;">
+                                                <label for="region-ap" style="cursor: pointer; margin: 0; flex: 1;">ap</label>
+                                            </div>
+                                            <div class="zone-list">
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-ap-south-1" value="ap-south-1" data-region="ap">
+                                                    <label for="zone-ap-south-1">ap-south-1</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-ap-northeast-1" value="ap-northeast-1" data-region="ap">
+                                                    <label for="zone-ap-northeast-1">ap-northeast-1</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-ap-south-1a" value="ap-south-1a" data-region="ap">
+                                                    <label for="zone-ap-south-1a">ap-south-1a</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-ap-northeast-1a" value="ap-northeast-1a" data-region="ap">
+                                                    <label for="zone-ap-northeast-1a">ap-northeast-1a</label>
+                                                </div>
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-ap-northeast-1b" value="ap-northeast-1b" data-region="ap">
+                                                    <label for="zone-ap-northeast-1b">ap-northeast-1b</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="region-item">
+                                            <div class="region-header" data-region="sa">
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                                <input type="checkbox" id="region-sa" data-region="sa" style="margin: 0;">
+                                                <label for="region-sa" style="cursor: pointer; margin: 0; flex: 1;">sa</label>
+                                            </div>
+                                            <div class="zone-list">
+                                                <div class="zone-item">
+                                                    <input type="checkbox" id="zone-sa-east-1" value="sa-east-1" data-region="sa">
+                                                    <label for="zone-sa-east-1">sa-east-1</label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="endpoint-group">
-                            <button class="endpoint-group-toggle collapsed">
-                                <div class="endpoint-group-title"><i class="fa-solid fa-chevron-right"></i> <strong>Cluster B</strong> <span class="health-badge hb-warning">0 / 1 Healthy</span></div>
-                            </button>
-                            <div class="endpoint-group-content collapsed">
-                                <div class="endpoint-list" style="padding: 0 20px;">
-                                    <div class="endpoint-list-item failing">
-                                        <i class="fa-solid fa-triangle-exclamation text-warning"></i>
-                                        <div><div style="font-weight: 600;">checkout-v2-fghij</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-2</div></div>
+                        <div class="cluster-results" id="cluster-results" style="margin-top: 15px;">
+                            <!-- Results will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div id="source-cluster-summary" class="source-cluster-summary" style="display: none;">
+                        <div class="summary-header">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span>Source Cluster Summary</span>
+                        </div>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-label">Cluster Name</div>
+                                <div class="summary-value" id="summary-name">-</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Localities</div>
+                                <div class="summary-value" id="summary-localities-count">0</div>
+                                <div class="summary-detail" id="summary-localities-detail">-</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Source Identities (Clients)</div>
+                                <div class="summary-value" id="summary-clients">0</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Resources Attached</div>
+                                <div class="summary-value" id="summary-resources">0</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">Policies Attached</div>
+                                <div class="summary-value" id="summary-policies">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="details-grid">
+                        <div class="card">
+                            <div class="card-top-header">
+                                <h3>Traffic by Locality</h3>
+                                <button class="time-dropdown" style="font-size: 0.8rem;">Last 30 mins <i class="fa-solid fa-chevron-down"></i></button>
+                            </div>
+                            <div style="padding: 15px 20px 0 20px;">
+                                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-error); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">us-east-1 (failed)</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">0 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">us-west-2</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">910 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-info); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">eu-central-1</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">520 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--accent); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">closest to client</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">680 RPS</span>
                                     </div>
                                 </div>
                             </div>
+                            <div style="height: 300px; position: relative; padding: 0 20px 20px 20px;">
+                                <svg viewBox="0 0 800 300" class="chart-svg" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+                                    <!-- Grid lines -->
+                                    <line x1="0" y1="250" x2="800" y2="250" style="stroke:#27272a; stroke-width:1"></line>
+                                    <line x1="0" y1="200" x2="800" y2="200" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="150" x2="800" y2="150" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="100" x2="800" y2="100" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="50" x2="800" y2="50" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    
+                                    <!-- Y-axis labels -->
+                                    <text x="5" y="255" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">0</text>
+                                    <text x="5" y="205" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">400</text>
+                                    <text x="5" y="155" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">800</text>
+                                    <text x="5" y="105" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">1200</text>
+                                    <text x="5" y="55" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">1600</text>
+                                    
+                                    <!-- us-east-1 (error/red) - was high, then drops to 0 -->
+                                    <path d="M0,150 L100,140 L200,130 L300,140 L400,250 L500,250 L600,250 L700,250 L800,250" 
+                                          style="fill:none; stroke:var(--color-error); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- us-west-2 (success/green) - was low, spikes up -->
+                                    <path d="M0,240 L100,230 L200,220 L300,210 L400,80 L500,70 L600,75 L700,80 L800,70" 
+                                          style="fill:none; stroke:var(--color-success); stroke-width:2.5; opacity:0.9"></path>
+
+                                    <!-- eu-central-1 (info/blue) - was low, spikes up -->
+                                    <path d="M0,250 L100,240 L200,240 L300,230 L400,150 L500,140 L600,145 L700,150 L800,140" 
+                                          style="fill:none; stroke:var(--color-info); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- closest to client (accent color) - moderate traffic -->
+                                    <path d="M0,200 L100,195 L200,190 L300,185 L400,120 L500,115 L600,120 L700,125 L800,120" 
+                                          style="fill:none; stroke:var(--accent); stroke-width:2.5; opacity:0.9"></path>
+                                </svg>
+                                <div class="chart-x-axis" style="display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px;">
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:45</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:50</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:55</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:00</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:05</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:10</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:15</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="endpoint-group">
-                            <button class="endpoint-group-toggle collapsed">
-                                <div class="endpoint-group-title"><i class="fa-solid fa-chevron-right"></i> <strong>Cluster C</strong> <span class="health-badge hb-success">2 / 2 Healthy</span></div>
-                            </button>
-                            <div class="endpoint-group-content collapsed">
-                                <div class="endpoint-list" style="padding: 0 20px;">
-                                     <div class="endpoint-list-item">
-                                        <i class="fa-solid fa-circle-check text-success"></i>
-                                        <div><div style="font-weight: 600;">checkout-v1-klmno</div><div style="font-size: 0.8rem; color: var(--text-secondary);">eu-west-1</div></div>
+                        <div class="card">
+                            <div class="card-top-header">
+                                <h3>Latency</h3>
+                                <button class="time-dropdown" style="font-size: 0.8rem;">Last 30 mins <i class="fa-solid fa-chevron-down"></i></button>
+                            </div>
+                            <div style="padding: 15px 20px 0 20px;">
+                                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">p99</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">120ms</span>
                                     </div>
-                                    <div class="endpoint-list-item">
-                                        <i class="fa-solid fa-circle-check text-success"></i>
-                                        <div><div style="font-weight: 600;">checkout-v1-uvwxy</div><div style="font-size: 0.8rem; color: var(--text-secondary);">eu-west-1</div></div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-info, #38bdf8); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">p90</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">60ms</span>
                                     </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">p50</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">25ms</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="height: 300px; position: relative; padding: 0 20px 20px 20px;">
+                                <svg viewBox="0 0 800 300" class="chart-svg" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+                                    <!-- Grid lines -->
+                                    <line x1="0" y1="250" x2="800" y2="250" style="stroke:#27272a; stroke-width:1"></line>
+                                    <line x1="0" y1="200" x2="800" y2="200" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="150" x2="800" y2="150" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="100" x2="800" y2="100" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="50" x2="800" y2="50" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    
+                                    <!-- Y-axis labels -->
+                                    <text x="5" y="255" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">0ms</text>
+                                    <text x="5" y="205" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">50ms</text>
+                                    <text x="5" y="155" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">100ms</text>
+                                    <text x="5" y="105" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">150ms</text>
+                                    <text x="5" y="55" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">200ms</text>
+                                    
+                                    <!-- p50 (success/green) - stable low latency -->
+                                    <path d="M0,240 L100,242 L200,238 L300,240 L400,235 L500,238 L600,240 L700,235 L800,238" 
+                                          style="fill:none; stroke:var(--color-success); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- p90 (info/blue) - stable medium latency -->
+                                    <path d="M0,220 L100,225 L200,220 L300,223 L400,200 L500,210 L600,215 L700,220 L800,218" 
+                                          style="fill:none; stroke:var(--color-info, #38bdf8); stroke-width:2.5; opacity:0.9"></path>
+
+                                    <!-- p99 (warning/orange) - spikes around failover -->
+                                    <path d="M0,200 L100,205 L200,195 L300,80 L400,60 L500,150 L600,180 L700,190 L800,185" 
+                                          style="fill:none; stroke:var(--color-warning); stroke-width:2.5; opacity:0.9"></path>
+                                </svg>
+                                <div class="chart-x-axis" style="display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px;">
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:45</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:50</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:55</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:00</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:05</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:10</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:15</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="pagination" style="padding: 15px 20px;">
-                        <span>Showing 1-5 of 5</span>
-                        <div class="page-btns"><button disabled=""><i class="fa-solid fa-chevron-left"></i></button><button disabled=""><i class="fa-solid fa-chevron-right"></i></button></div>
+
+                    <div class="details-grid">
+                        <div class="card">
+                            <div class="card-top-header">
+                                <h3>Traffic by Status</h3>
+                                <button class="time-dropdown" style="font-size: 0.8rem;">Last 30 mins <i class="fa-solid fa-chevron-down"></i></button>
+                            </div>
+                            <div style="padding: 15px 20px 0 20px;">
+                                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">2xx</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">1,230 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">4xx</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">45 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-error); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">5xx</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">12 RPS</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="height: 300px; position: relative; padding: 0 20px 20px 20px;">
+                                <svg viewBox="0 0 800 300" class="chart-svg" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+                                    <!-- Grid lines -->
+                                    <line x1="0" y1="250" x2="800" y2="250" style="stroke:#27272a; stroke-width:1"></line>
+                                    <line x1="0" y1="200" x2="800" y2="200" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="150" x2="800" y2="150" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="100" x2="800" y2="100" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="50" x2="800" y2="50" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    
+                                    <!-- Y-axis labels -->
+                                    <text x="5" y="255" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">0</text>
+                                    <text x="5" y="205" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">400</text>
+                                    <text x="5" y="155" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">800</text>
+                                    <text x="5" y="105" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">1200</text>
+                                    <text x="5" y="55" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">1600</text>
+                                    
+                                    <!-- 2xx (success/green) - high and stable -->
+                                    <path d="M0,80 L100,75 L200,70 L300,75 L400,80 L500,75 L600,70 L700,75 L800,80" 
+                                          style="fill:none; stroke:var(--color-success); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- 4xx (warning/orange) - low and stable -->
+                                    <path d="M0,220 L100,215 L200,210 L300,215 L400,220 L500,215 L600,210 L700,215 L800,220" 
+                                          style="fill:none; stroke:var(--color-warning); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- 5xx (error/red) - very low, occasional spikes -->
+                                    <path d="M0,240 L100,235 L200,230 L300,240 L400,245 L500,240 L600,235 L700,240 L800,245" 
+                                          style="fill:none; stroke:var(--color-error); stroke-width:2.5; opacity:0.9"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="card">
+                            <div class="card-top-header">
+                                <h3>Traffic by Cluster</h3>
+                                <button class="time-dropdown" style="font-size: 0.8rem;">Last 30 mins <i class="fa-solid fa-chevron-down"></i></button>
+                            </div>
+                            <div style="padding: 15px 20px 0 20px;">
+                                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">cluster-a</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">850 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-info); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">cluster-b</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">620 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--accent); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">cluster-c</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">480 RPS</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">cluster-d</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">320 RPS</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="height: 300px; position: relative; padding: 0 20px 20px 20px;">
+                                <svg viewBox="0 0 800 300" class="chart-svg" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+                                    <!-- Grid lines -->
+                                    <line x1="0" y1="250" x2="800" y2="250" style="stroke:#27272a; stroke-width:1"></line>
+                                    <line x1="0" y1="200" x2="800" y2="200" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="150" x2="800" y2="150" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="100" x2="800" y2="100" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="50" x2="800" y2="50" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    
+                                    <!-- Y-axis labels -->
+                                    <text x="5" y="255" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">0</text>
+                                    <text x="5" y="205" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">400</text>
+                                    <text x="5" y="155" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">800</text>
+                                    <text x="5" y="105" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">1200</text>
+                                    <text x="5" y="55" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">1600</text>
+                                    
+                                    <!-- cluster-a (success/green) - high and stable -->
+                                    <path d="M0,100 L100,95 L200,90 L300,95 L400,100 L500,95 L600,90 L700,95 L800,100" 
+                                          style="fill:none; stroke:var(--color-success); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- cluster-b (info/blue) - moderate, stable -->
+                                    <path d="M0,140 L100,135 L200,130 L300,135 L400,140 L500,135 L600,130 L700,135 L800,140" 
+                                          style="fill:none; stroke:var(--color-info); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- cluster-c (accent) - moderate, slight variation -->
+                                    <path d="M0,170 L100,165 L200,160 L300,165 L400,170 L500,165 L600,160 L700,165 L800,170" 
+                                          style="fill:none; stroke:var(--accent); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- cluster-d (warning/orange) - lower, stable -->
+                                    <path d="M0,200 L100,195 L200,190 L300,195 L400,200 L500,195 L600,190 L700,195 L800,200" 
+                                          style="fill:none; stroke:var(--color-warning); stroke-width:2.5; opacity:0.9"></path>
+                                </svg>
+                                <div class="chart-x-axis" style="display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px;">
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:45</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:50</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:55</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:00</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:05</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:10</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:15</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-top-header" style="padding: 20px 20px 10px 20px;">
-                        <h3 style="margin: 0;">Service Context</h3>
-                        <a href="service-graph.html" class="link-out">Full Graph <i class="fa-solid fa-up-right-from-square"></i></a>
+                <div id="backend" class="tab-content">
+                    <div class="card">
+                        <div class="card-top-header" style="padding: 20px 20px 0 20px; margin-bottom: 15px;">
+                            <h3 class="endpoints-header" style="margin: 0;">Endpoints (3/6 Healthy)</h3>
+                            <button class="filter-clear-btn" id="clear-endpoint-filters" style="display: none;">
+                                <i class="fa-solid fa-xmark"></i> Clear Filters
+                            </button>
+                        </div>
+                        <div class="cluster-filter-panel" style="margin: 0 20px 20px 20px;">
+                            <div class="filter-bar">
+                                <div class="filter-item">
+                                    <i class="fa-solid fa-magnifying-glass" style="color: var(--text-secondary); font-size: 0.85rem;"></i>
+                                    <input type="text" id="filter-endpoint-name" class="filter-input-compact" placeholder="Cluster name">
+                                </div>
+                                <div class="filter-item">
+                                    <span class="filter-item-label">Clusters:</span>
+                                    <div class="filter-dropdown" id="filter-endpoint-clusters-dropdown">
+                                        <button class="filter-badge" id="filter-endpoint-clusters-badge">
+                                            <span>All Clusters</span>
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+                                        <div class="filter-dropdown-content">
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-cluster-a" value="cluster-a">
+                                                <label for="endpoint-cluster-a" style="cursor: pointer; margin: 0;">cluster-a</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-cluster-b" value="cluster-b">
+                                                <label for="endpoint-cluster-b" style="cursor: pointer; margin: 0;">cluster-b</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-cluster-c" value="cluster-c">
+                                                <label for="endpoint-cluster-c" style="cursor: pointer; margin: 0;">cluster-c</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-cluster-d" value="cluster-d">
+                                                <label for="endpoint-cluster-d" style="cursor: pointer; margin: 0;">cluster-d</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-cluster-e" value="cluster-e">
+                                                <label for="endpoint-cluster-e" style="cursor: pointer; margin: 0;">cluster-e</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-cluster-f" value="cluster-f">
+                                                <label for="endpoint-cluster-f" style="cursor: pointer; margin: 0;">cluster-f</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="filter-item">
+                                    <span class="filter-item-label">Status:</span>
+                                    <div class="filter-dropdown" id="filter-endpoint-status-dropdown">
+                                        <button class="filter-badge" id="filter-endpoint-status-badge">
+                                            <span>All Status</span>
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+                                        <div class="filter-dropdown-content">
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-status-warning" value="warning">
+                                                <label for="endpoint-status-warning" style="cursor: pointer; margin: 0;"><i class="fa-solid fa-triangle-exclamation text-warning"></i> Warning</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-status-ok" value="ok">
+                                                <label for="endpoint-status-ok" style="cursor: pointer; margin: 0;"><i class="fa-solid fa-circle-check text-success"></i> OK</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-status-error" value="error">
+                                                <label for="endpoint-status-error" style="cursor: pointer; margin: 0;"><i class="fa-solid fa-circle-xmark text-error"></i> Error</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="filter-item">
+                                    <span class="filter-item-label">Type:</span>
+                                    <div class="filter-dropdown" id="filter-endpoint-type-dropdown">
+                                        <button class="filter-badge" id="filter-endpoint-type-badge">
+                                            <span>All Types</span>
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+                                        <div class="filter-dropdown-content">
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-type-pod" value="pod">
+                                                <label for="endpoint-type-pod" style="cursor: pointer; margin: 0;">Pod</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-type-workload" value="workload">
+                                                <label for="endpoint-type-workload" style="cursor: pointer; margin: 0;">Workload</label>
+                                            </div>
+                                            <div class="filter-dropdown-option">
+                                                <input type="checkbox" id="endpoint-type-other" value="other">
+                                                <label for="endpoint-type-other" style="cursor: pointer; margin: 0;">Other</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="filter-item">
+                                    <span class="filter-item-label">Labels:</span>
+                                    <div class="filter-dropdown" id="filter-endpoint-labels-dropdown" style="min-width: 300px;">
+                                        <button class="filter-badge" id="filter-endpoint-labels-badge">
+                                            <span>Add Labels</span>
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+                                        <div class="filter-dropdown-content" style="min-width: 300px;">
+                                            <div style="padding: 8px;">
+                                                <div class="label-input-group">
+                                                    <input type="text" id="endpoint-label-key-input" class="filter-input-compact" placeholder="key" style="width: 120px;">
+                                                    <span>=</span>
+                                                    <input type="text" id="endpoint-label-value-input" class="filter-input-compact" placeholder="value" style="width: 120px;">
+                                                    <button id="add-endpoint-label-btn" style="background: var(--accent); color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 0.8rem;">
+                                                        <i class="fa-solid fa-plus"></i> Add
+                                                    </button>
+                                                </div>
+                                                <div class="label-tags" id="endpoint-label-tags-container"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="filter-item">
+                                    <span class="filter-item-label">Localities:</span>
+                                    <div class="filter-dropdown" id="filter-endpoint-localities-dropdown" style="min-width: 250px;">
+                                        <button class="filter-badge" id="filter-endpoint-localities-badge">
+                                            <span>All Localities</span>
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+                                        <div class="filter-dropdown-content region-zone-tree" style="min-width: 250px;">
+                                            <div class="region-item">
+                                                <div class="region-header" data-region="us-east">
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                    <input type="checkbox" id="endpoint-region-us-east" data-region="us-east" style="margin: 0;">
+                                                    <label for="endpoint-region-us-east" style="cursor: pointer; margin: 0; flex: 1;">us-east</label>
+                                                </div>
+                                                <div class="zone-list">
+                                                    <div class="zone-item">
+                                                        <input type="checkbox" id="endpoint-zone-us-east-1" value="us-east-1" data-region="us-east">
+                                                        <label for="endpoint-zone-us-east-1">us-east-1</label>
+                                                    </div>
+                                                    <div class="zone-item">
+                                                        <input type="checkbox" id="endpoint-zone-us-east-2" value="us-east-2" data-region="us-east">
+                                                        <label for="endpoint-zone-us-east-2">us-east-2</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="region-item">
+                                                <div class="region-header" data-region="us-west">
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                    <input type="checkbox" id="endpoint-region-us-west" data-region="us-west" style="margin: 0;">
+                                                    <label for="endpoint-region-us-west" style="cursor: pointer; margin: 0; flex: 1;">us-west</label>
+                                                </div>
+                                                <div class="zone-list">
+                                                    <div class="zone-item">
+                                                        <input type="checkbox" id="endpoint-zone-us-west-1" value="us-west-1" data-region="us-west">
+                                                        <label for="endpoint-zone-us-west-1">us-west-1</label>
+                                                    </div>
+                                                    <div class="zone-item">
+                                                        <input type="checkbox" id="endpoint-zone-us-west-2" value="us-west-2" data-region="us-west">
+                                                        <label for="endpoint-zone-us-west-2">us-west-2</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="region-item">
+                                                <div class="region-header" data-region="eu">
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                    <input type="checkbox" id="endpoint-region-eu" data-region="eu" style="margin: 0;">
+                                                    <label for="endpoint-region-eu" style="cursor: pointer; margin: 0; flex: 1;">eu</label>
+                                                </div>
+                                                <div class="zone-list">
+                                                    <div class="zone-item">
+                                                        <input type="checkbox" id="endpoint-zone-eu-west-1" value="eu-west-1" data-region="eu">
+                                                        <label for="endpoint-zone-eu-west-1">eu-west-1</label>
+                                                    </div>
+                                                    <div class="zone-item">
+                                                        <input type="checkbox" id="endpoint-zone-eu-central-1" value="eu-central-1" data-region="eu">
+                                                        <label for="endpoint-zone-eu-central-1">eu-central-1</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint-groups" id="backend-endpoint-groups" style="padding: 10px 0;">
+                            <div class="endpoint-group">
+                                <button class="endpoint-group-toggle">
+                                    <div class="endpoint-group-title"><i class="fa-solid fa-chevron-down"></i> <strong>us-east-1</strong> <span class="health-badge hb-error">0 / 3 Healthy</span></div>
+                                </button>
+                                <div class="endpoint-group-content">
+                                    <div class="endpoint-list" style="padding: 0 20px;">
+                                        <div class="endpoint-list-item failing">
+                                            <i class="fa-solid fa-triangle-exclamation text-error"></i>
+                                            <div><div style="font-weight: 600;">checkout-v1-abcde</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-1</div></div>
+                                        </div>
+                                        <div class="endpoint-list-item failing">
+                                            <i class="fa-solid fa-triangle-exclamation text-error"></i>
+                                            <div><div style="font-weight: 600;">checkout-v1-pqrst</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-1</div></div>
+                                        </div>
+                                        <div class="endpoint-list-item failing">
+                                            <i class="fa-solid fa-triangle-exclamation text-error"></i>
+                                            <div><div style="font-weight: 600;">checkout-v1-vwxyz</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-east-1</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="endpoint-group">
+                                <button class="endpoint-group-toggle">
+                                    <div class="endpoint-group-title"><i class="fa-solid fa-chevron-down"></i> <strong>us-west-2</strong> <span class="health-badge hb-success">2 / 2 Healthy</span></div>
+                                </button>
+                                <div class="endpoint-group-content">
+                                    <div class="endpoint-list" style="padding: 0 20px;">
+                                        <div class="endpoint-list-item">
+                                            <i class="fa-solid fa-circle-check text-success"></i>
+                                            <div><div style="font-weight: 600;">checkout-v2-fghij</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-west-2</div></div>
+                                        </div>
+                                        <div class="endpoint-list-item">
+                                            <i class="fa-solid fa-circle-check text-success"></i>
+                                            <div><div style="font-weight: 600;">checkout-v2-klmno</div><div style="font-size: 0.8rem; color: var(--text-secondary);">us-west-2</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="endpoint-group">
+                                <button class="endpoint-group-toggle">
+                                    <div class="endpoint-group-title"><i class="fa-solid fa-chevron-down"></i> <strong>eu-central-1</strong> <span class="health-badge hb-success">1 / 1 Healthy</span></div>
+                                </button>
+                                <div class="endpoint-group-content">
+                                    <div class="endpoint-list" style="padding: 0 20px;">
+                                         <div class="endpoint-list-item">
+                                            <i class="fa-solid fa-circle-check text-success"></i>
+                                            <div><div style="font-weight: 600;">checkout-v2-uvwxy</div><div style="font-size: 0.8rem; color: var(--text-secondary);">eu-central-1</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pagination" style="padding: 15px 20px;">
+                            <span>Showing 1-6 of 6</span>
+                            <div class="page-btns"><button disabled=""><i class="fa-solid fa-chevron-left"></i></button><button disabled=""><i class="fa-solid fa-chevron-right"></i></button></div>
+                        </div>
                     </div>
-                    <div style="height: 100%; min-height: 400px; padding: 10px; box-sizing: border-box;">
-                        <a href="service-graph.html" id="mini-cy-link" style="display:block; width: 100%; height: 100%;">
-                            <div id="mini-cy" style="width: 100%; height: 100%;"></div>
-                        </a>
+                </div>
+                <div id="events" class="tab-content">
+                    <div class="card">
+                        <div class="card-top-header"><h3>Events</h3></div>
+                        <div id="live-event-section" style="padding: 20px; border-bottom: 2px solid var(--border-color); background-color: var(--bg-dark);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <div style="width: 8px; height: 8px; background-color: var(--color-error); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                                <h4 style="margin: 0; font-size: 1rem; font-weight: 600;">Live Event</h4>
+                            </div>
+                            <div id="live-event-content" style="color: var(--text-secondary); font-size: 0.9rem;">
+                                No live events
+                            </div>
+                        </div>
+                        <div id="events-timeline" style="max-height: 600px; overflow-y: auto;">
+                            <!-- Events will be populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -489,6 +1602,43 @@
         </main>
     </div>
     <script>
+        // --- Tabs ---
+        const tabs = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = document.getElementById(tab.dataset.tab);
+
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                tabContents.forEach(c => c.classList.remove('active'));
+                target.classList.add('active');
+
+                // When Endpoints tab is opened, load endpoints
+                if (tab.dataset.tab === 'backend') {
+                    if (selectedClusterId) {
+                        // If a cluster is selected, show its endpoints
+                        const cluster = clusterData[selectedClusterId];
+                        if (cluster) {
+                            updateEndpoints(cluster);
+                        }
+                    } else {
+                        // If no cluster selected, show all endpoints from all clusters
+                        getAllEndpointsFromAllClusters();
+                        filterEndpoints();
+                    }
+                }
+
+                // When Events tab is opened, load all events
+                if (tab.dataset.tab === 'events') {
+                    loadAllEvents();
+                    updateLiveEvent();
+                }
+            });
+        });
+
         // --- Endpoints ---
         document.querySelectorAll('.endpoint-group-toggle').forEach(button => {
             button.addEventListener('click', () => {
@@ -501,46 +1651,1403 @@
             });
         });
 
-        // --- Mini Graph ---
-        if (typeof cytoscape !== 'undefined') {
-            const miniCy = cytoscape({
-                container: document.getElementById('mini-cy'),
-                elements: {
-                    nodes: [
-                        { data: { id: 'frontend-app', label: 'Frontend' } },
-                        { data: { id: 'payment-service', label: 'Payment' } },
-                        { data: { id: 'checkout-service', label: 'Checkout', type: 'service-failover' } },
-                    ],
-                    edges: [
-                        { data: { source: 'frontend-app', target: 'checkout-service' } },
-                        { data: { source: 'payment-service', target: 'checkout-service' } },
-                        { data: { source: 'checkout-service', target: 'payment-service' } },
-                    ]
-                },
-                style: [
-                    {
-                        selector: 'node',
-                        style: {
-                            'background-color': '#2B313C', 'border-width': 2, 'border-color': '#58A6FF',
-                            'label': 'data(label)', 'color': '#C9D1D9', 'font-size': 11,
-                            'text-valign': 'bottom', 'text-margin-y': 6, 'width': 40, 'height': 40,
-                        }
-                    },
-                    { selector: '[type = "service-failover"]', style: { 'border-color': '#F59E0B' } },
-                    {
-                        selector: 'edge',
-                        style: {
-                            'width': 1.5, 'line-color': '#484F58', 'target-arrow-color': '#484F58',
-                            'target-arrow-shape': 'triangle', 'curve-style': 'bezier'
-                        }
-                    },
+        // --- Traffic Source Cluster Filtering and Selection ---
+        // Region to zones mapping
+        const regionZoneMap = {
+            'us-east': ['us-east-1', 'us-east-2', 'us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-2a', 'us-east-2b'],
+            'us-west': ['us-west-1', 'us-west-2'],
+            'eu': ['eu-west-1', 'eu-central-1', 'eu-west-1a'],
+            'ap': ['ap-south-1', 'ap-northeast-1', 'ap-south-1a', 'ap-northeast-1a', 'ap-northeast-1b'],
+            'sa': ['sa-east-1']
+        };
+
+        const clusterData = {
+            'cluster-b': {
+                name: 'cluster-b',
+                localities: ['us-east-2', 'us-east-2a', 'us-east-2b'],
+                rps: '580',
+                policies: ['preferZone', 'failover'],
+                hasFailover: true,
+                status: 'warning',
+                labels: { 'env': 'prod', 'team': 'team1', 'critical': 'true' },
+                sourceIdentities: 45,
+                resourcesAttached: 12,
+                policiesAttached: 3,
+                trafficData: [
+                    { locality: 'us-east-2', rps: 580, color: 'var(--color-warning)', path: 'M0,80 L100,85 L200,75 L300,70 L400,65 L500,70 L600,75 L700,80 L800,75' },
+                    { locality: 'us-east-2a', rps: 320, color: 'var(--color-info)', path: 'M0,150 L100,145 L200,140 L300,135 L400,130 L500,135 L600,140 L700,145 L800,140' },
+                    { locality: 'us-east-2b', rps: 260, color: 'var(--color-success)', path: 'M0,180 L100,175 L200,170 L300,165 L400,160 L500,165 L600,170 L700,175 L800,170' }
                 ],
-                layout: { name: 'grid', rows: 1, cols: 3, padding: 10 },
-                userZoomingEnabled: false,
-                userPanningEnabled: false,
-                autolock: true,
+                latencyData: {
+                    p50: { value: 28, path: 'M0,240 L100,242 L200,238 L300,240 L400,235 L500,238 L600,240 L700,235 L800,238' },
+                    p90: { value: 65, path: 'M0,220 L100,225 L200,220 L300,223 L400,200 L500,210 L600,215 L700,220 L800,218' },
+                    p99: { value: 135, path: 'M0,200 L100,205 L200,195 L300,180 L400,160 L500,170 L600,180 L700,190 L800,185' }
+                },
+                events: [
+                    { time: '12:02', title: 'Failover Complete', desc: 'Traffic shifted from us-east-2 to us-west-2 & eu-central-1', startTime: '12:01:15', endTime: '12:02:30', failoverTime: '12:02:30', failoverFrom: 'us-east-2', failoverTo: 'us-west-2, eu-central-1' },
+                    { time: '12:00', title: 'Traffic Spike', desc: 'RPS increased to 580 in us-east-2', startTime: '12:00:00', endTime: '12:01:45' },
+                    { time: '11:58', title: 'Zone Health Check', desc: 'us-east-2a showing elevated latency', startTime: '11:58:00', endTime: '11:59:30' }
+                ],
+                endpoints: [
+                    { locality: 'us-east-2', healthy: 2, total: 3, items: [
+                        { name: 'checkout-v1-abcde', locality: 'us-east-2', type: 'pod', status: 'error', healthy: false, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Readiness probe failing' },
+                        { name: 'checkout-v1-pqrst', locality: 'us-east-2', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' },
+                        { name: 'checkout-v1-vwxyz', locality: 'us-east-2', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'us-east-2a', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-abcde', locality: 'us-east-2a', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'us-east-2b', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-pqrst', locality: 'us-east-2b', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                    ]}
+                ]
+            },
+            'cluster-d': {
+                name: 'cluster-d',
+                localities: ['ap-south-1', 'ap-south-1a'],
+                rps: '120',
+                policies: ['preferRegion', 'failover'],
+                hasFailover: true,
+                status: 'warning',
+                labels: { 'env': 'prod', 'monitored': 'true' },
+                sourceIdentities: 18,
+                resourcesAttached: 8,
+                policiesAttached: 2,
+                trafficData: [
+                    { locality: 'ap-south-1', rps: 120, color: 'var(--color-warning)', path: 'M0,200 L100,195 L200,190 L300,185 L400,180 L500,185 L600,190 L700,195 L800,190' },
+                    { locality: 'ap-south-1a', rps: 80, color: 'var(--color-info)', path: 'M0,220 L100,215 L200,210 L300,205 L400,200 L500,205 L600,210 L700,215 L800,210' }
+                ],
+                latencyData: {
+                    p50: { value: 35, path: 'M0,235 L100,238 L200,232 L300,235 L400,230 L500,233 L600,235 L700,230 L800,233' },
+                    p90: { value: 75, path: 'M0,215 L100,220 L200,215 L300,218 L400,195 L500,205 L600,210 L700,215 L800,213' },
+                    p99: { value: 150, path: 'M0,195 L100,200 L200,190 L300,175 L400,155 L500,165 L600,175 L700,185 L800,180' }
+                },
+                events: [
+                    { time: '12:01', title: 'Failover Initiated', desc: 'Automatic failover policy triggered for ap-south-1', startTime: '12:00:30', endTime: '12:01:15', failoverTime: '12:01:15', failoverFrom: 'ap-south-1', failoverTo: 'ap-south-1a' },
+                    { time: '11:59', title: 'Endpoint Degradation', desc: '1/2 endpoints showing issues in ap-south-1', startTime: '11:59:00', endTime: '12:00:15' }
+                ],
+                endpoints: [
+                    { locality: 'ap-south-1', healthy: 1, total: 2, items: [
+                        { name: 'checkout-v1-xyz', locality: 'ap-south-1', type: 'pod', status: 'error', healthy: false, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Stuck terminating (5m)' },
+                        { name: 'checkout-v2-abc', locality: 'ap-south-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'ap-south-1a', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-def', locality: 'ap-south-1a', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Ready' }
+                    ]}
+                ]
+            },
+            'cluster-a': {
+                name: 'cluster-a',
+                localities: ['us-east-1', 'us-east-1a', 'us-east-1b', 'us-east-1c'],
+                rps: '330',
+                policies: ['preferClose'],
+                hasFailover: false,
+                status: 'ok',
+                labels: { 'env': 'prod', 'team': 'team1', 'foo': 'bar' },
+                sourceIdentities: 32,
+                resourcesAttached: 15,
+                policiesAttached: 2,
+                trafficData: [
+                    { locality: 'us-east-1', rps: 330, color: 'var(--color-success)', path: 'M0,120 L100,115 L200,110 L300,105 L400,100 L500,105 L600,110 L700,115 L800,110' },
+                    { locality: 'us-east-1a', rps: 180, color: 'var(--color-info)', path: 'M0,160 L100,155 L200,150 L300,145 L400,140 L500,145 L600,150 L700,155 L800,150' },
+                    { locality: 'us-east-1b', rps: 100, color: 'var(--color-success)', path: 'M0,190 L100,185 L200,180 L300,175 L400,170 L500,175 L600,180 L700,185 L800,180' },
+                    { locality: 'us-east-1c', rps: 50, color: 'var(--color-info)', path: 'M0,210 L100,205 L200,200 L300,195 L400,190 L500,195 L600,200 L700,205 L800,200' }
+                ],
+                latencyData: {
+                    p50: { value: 25, path: 'M0,240 L100,242 L200,238 L300,240 L400,235 L500,238 L600,240 L700,235 L800,238' },
+                    p90: { value: 60, path: 'M0,220 L100,225 L200,220 L300,223 L400,200 L500,210 L600,215 L700,220 L800,218' },
+                    p99: { value: 120, path: 'M0,200 L100,205 L200,195 L300,180 L400,160 L500,170 L600,180 L700,190 L800,185' }
+                },
+                events: [
+                    { time: '12:00', title: 'Traffic Normal', desc: 'All endpoints healthy in us-east-1', startTime: '12:00:00', endTime: '12:05:00' },
+                    { time: '11:55', title: 'Load Balanced', desc: 'Traffic distributed across 4 zones', startTime: '11:55:00', endTime: '11:58:30' }
+                ],
+                endpoints: [
+                    { locality: 'us-east-1', healthy: 3, total: 3, items: [
+                        { name: 'checkout-v1-abc', locality: 'us-east-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' },
+                        { name: 'checkout-v1-def', locality: 'us-east-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' },
+                        { name: 'checkout-v1-ghi', locality: 'us-east-1', type: 'pod', status: 'warning', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Liveness probe failing' }
+                    ]},
+                    { locality: 'us-east-1a', healthy: 2, total: 2, items: [
+                        { name: 'checkout-v2-jkl', locality: 'us-east-1a', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' },
+                        { name: 'checkout-v2-mno', locality: 'us-east-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'us-east-1b', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-pqr', locality: 'us-east-1b', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'us-east-1c', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-stu', locality: 'us-east-1c', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                    ]}
+                ]
+            },
+            'cluster-c': {
+                name: 'cluster-c',
+                localities: ['eu-west-1', 'eu-west-1a'],
+                rps: '210',
+                policies: ['Custom'],
+                hasFailover: false,
+                status: 'ok',
+                labels: { 'env': 'prod' },
+                sourceIdentities: 25,
+                resourcesAttached: 10,
+                policiesAttached: 1,
+                trafficData: [
+                    { locality: 'eu-west-1', rps: 210, color: 'var(--color-success)', path: 'M0,140 L100,135 L200,130 L300,125 L400,120 L500,125 L600,130 L700,135 L800,130' },
+                    { locality: 'eu-west-1a', rps: 120, color: 'var(--color-info)', path: 'M0,170 L100,165 L200,160 L300,155 L400,150 L500,155 L600,160 L700,165 L800,160' }
+                ],
+                latencyData: {
+                    p50: { value: 22, path: 'M0,242 L100,240 L200,238 L300,240 L400,235 L500,238 L600,240 L700,235 L800,238' },
+                    p90: { value: 55, path: 'M0,222 L100,220 L200,218 L300,220 L400,205 L500,215 L600,220 L700,225 L800,220' },
+                    p99: { value: 110, path: 'M0,202 L100,200 L200,195 L300,185 L400,165 L500,175 L600,185 L700,195 L800,190' }
+                },
+                events: [
+                    { time: '11:58', title: 'Custom Policy Applied', desc: 'Custom routing policy active in eu-west-1', startTime: '11:58:00' }
+                ],
+                endpoints: [
+                    { locality: 'eu-west-1', healthy: 2, total: 2, items: [
+                        { name: 'checkout-v1-eu1', locality: 'eu-west-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready' },
+                        { name: 'checkout-v1-eu2', locality: 'eu-west-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'eu-west-1a', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-eu1a', locality: 'eu-west-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready' }
+                    ]}
+                ]
+            },
+            'cluster-e': {
+                name: 'cluster-e',
+                localities: ['ap-northeast-1', 'ap-northeast-1a', 'ap-northeast-1b'],
+                rps: '150',
+                policies: ['preferZone'],
+                hasFailover: false,
+                status: 'ok',
+                labels: { 'env': 'prod', 'monitored': 'true' },
+                sourceIdentities: 20,
+                resourcesAttached: 9,
+                policiesAttached: 2,
+                trafficData: [
+                    { locality: 'ap-northeast-1', rps: 150, color: 'var(--color-success)', path: 'M0,160 L100,155 L200,150 L300,145 L400,140 L500,145 L600,150 L700,155 L800,150' },
+                    { locality: 'ap-northeast-1a', rps: 90, color: 'var(--color-info)', path: 'M0,180 L100,175 L200,170 L300,165 L400,160 L500,165 L600,170 L700,175 L800,170' },
+                    { locality: 'ap-northeast-1b', rps: 60, color: 'var(--color-success)', path: 'M0,195 L100,190 L200,185 L300,180 L400,175 L500,180 L600,185 L700,190 L800,185' }
+                ],
+                latencyData: {
+                    p50: { value: 30, path: 'M0,237 L100,240 L200,235 L300,238 L400,232 L500,235 L600,238 L700,232 L800,235' },
+                    p90: { value: 70, path: 'M0,217 L100,220 L200,215 L300,218 L400,200 L500,210 L600,215 L700,220 L800,215' },
+                    p99: { value: 140, path: 'M0,197 L100,200 L200,192 L300,178 L400,158 L500,168 L600,178 L700,188 L800,182' }
+                },
+                events: [
+                    { time: '11:57', title: 'Zone Preference Active', desc: 'preferZone policy routing traffic in ap-northeast-1', startTime: '11:57:00' }
+                ],
+                endpoints: [
+                    { locality: 'ap-northeast-1', healthy: 2, total: 2, items: [
+                        { name: 'checkout-v1-ap1', locality: 'ap-northeast-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' },
+                        { name: 'checkout-v1-ap2', locality: 'ap-northeast-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'ap-northeast-1a', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-ap1a', locality: 'ap-northeast-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' }
+                    ]},
+                    { locality: 'ap-northeast-1b', healthy: 1, total: 1, items: [
+                        { name: 'checkout-v2-ap1b', locality: 'ap-northeast-1b', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' }
+                    ]}
+                ]
+            },
+            'cluster-f': {
+                name: 'cluster-f',
+                localities: ['sa-east-1'],
+                rps: '90',
+                policies: ['preferClose'],
+                hasFailover: false,
+                status: 'ok',
+                labels: { 'env': 'staging' },
+                sourceIdentities: 8,
+                resourcesAttached: 5,
+                policiesAttached: 1,
+                trafficData: [
+                    { locality: 'sa-east-1', rps: 90, color: 'var(--color-success)', path: 'M0,190 L100,185 L200,180 L300,175 L400,170 L500,175 L600,180 L700,185 L800,180' }
+                ],
+                latencyData: {
+                    p50: { value: 40, path: 'M0,235 L100,238 L200,232 L300,235 L400,230 L500,233 L600,235 L700,230 L800,233' },
+                    p90: { value: 85, path: 'M0,215 L100,220 L200,215 L300,218 L400,200 L500,210 L600,215 L700,220 L800,215' },
+                    p99: { value: 160, path: 'M0,195 L100,200 L200,190 L300,175 L400,155 L500,165 L600,175 L700,185 L800,180' }
+                },
+                events: [
+                    { time: '11:55', title: 'Staging Environment', desc: 'Low traffic in staging cluster sa-east-1', startTime: '11:55:00' }
+                ],
+                endpoints: [
+                    { locality: 'sa-east-1', healthy: 1, total: 1, items: [
+                        { name: 'checkout-staging-1', locality: 'sa-east-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'staging' }, podStatus: 'Ready' }
+                    ]}
+                ]
+            }
+        };
+
+        let selectedClusterId = null;
+        let currentPage = 1;
+        let itemsPerPage = 5;
+        let allFilteredClusters = [];
+        const filterNameInput = document.getElementById('filter-cluster-name');
+        const clusterResults = document.getElementById('cluster-results');
+        const sourceClusterSummary = document.getElementById('source-cluster-summary');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+
+        // Endpoint filtering
+        let allEndpoints = [];
+        let selectedEndpointLabels = {};
+
+        // Label management
+        let selectedLabels = {}; // { key: value }
+
+        // Helper function to get selected status
+        function getSelectedStatus() {
+            const warning = document.getElementById('status-warning')?.checked;
+            const ok = document.getElementById('status-ok')?.checked;
+            const statuses = [];
+            if (warning) statuses.push('warning');
+            if (ok) statuses.push('ok');
+            return statuses;
+        }
+
+        // Helper function to get selected regions and zones
+        function getSelectedRegionsAndZones() {
+            const selectedRegions = [];
+            const selectedZones = [];
+            
+            // Get selected regions
+            document.querySelectorAll('input[type="checkbox"][id^="region-"]:checked').forEach(cb => {
+                selectedRegions.push(cb.dataset.region);
+            });
+            
+            // Get selected zones
+            document.querySelectorAll('input[type="checkbox"][id^="zone-"]:checked').forEach(cb => {
+                selectedZones.push(cb.value);
+            });
+            
+            return { regions: selectedRegions, zones: selectedZones };
+        }
+
+        // Helper function to update badge text
+        function updateBadge(badgeId, count, allText) {
+            const badge = document.getElementById(badgeId);
+            if (!badge) return;
+            if (count === 0) {
+                badge.querySelector('span').textContent = allText;
+            } else {
+                badge.querySelector('span').textContent = `${count} selected`;
+            }
+        }
+
+        function filterClusters() {
+            const nameFilter = filterNameInput ? filterNameInput.value.toLowerCase() : '';
+            const selectedStatus = getSelectedStatus();
+            const { regions, zones } = getSelectedRegionsAndZones();
+
+            // Show/hide clear filters button
+            const hasFilters = nameFilter || selectedStatus.length > 0 || Object.keys(selectedLabels).length > 0 || regions.length > 0 || zones.length > 0;
+            if (clearFiltersBtn) {
+                clearFiltersBtn.style.display = hasFilters ? 'block' : 'none';
+            }
+
+            // Update badges
+            updateBadge('filter-status-badge', selectedStatus.length, 'All Status');
+            updateBadge('filter-labels-badge', Object.keys(selectedLabels).length, 'Add Labels');
+            updateBadge('filter-localities-badge', regions.length + zones.length, 'All Localities');
+
+            const filtered = Object.entries(clusterData).filter(([id, cluster]) => {
+                // Name filter
+                if (nameFilter && !cluster.name.toLowerCase().includes(nameFilter)) {
+                    return false;
+                }
+
+                // Status filter
+                if (selectedStatus.length > 0 && !selectedStatus.includes(cluster.status)) {
+                    return false;
+                }
+
+                // Labels filter (key=value matching)
+                if (Object.keys(selectedLabels).length > 0) {
+                    for (const [key, value] of Object.entries(selectedLabels)) {
+                        if (cluster.labels[key] !== value) {
+                            return false;
+                        }
+                    }
+                }
+
+                // Region/Zone filter
+                if (regions.length > 0 || zones.length > 0) {
+                    let matchesRegion = false;
+                    let matchesZone = false;
+                    
+                    // Check if any cluster locality matches selected regions
+                    if (regions.length > 0) {
+                        for (const region of regions) {
+                            const regionZones = regionZoneMap[region] || [];
+                            if (cluster.localities.some(loc => regionZones.includes(loc))) {
+                                matchesRegion = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Check if any cluster locality matches selected zones
+                    if (zones.length > 0) {
+                        matchesZone = cluster.localities.some(loc => zones.includes(loc));
+                    }
+                    
+                    // If both regions and zones are selected, match if either matches
+                    // If only one is selected, match that one
+                    if (regions.length > 0 && zones.length > 0) {
+                        if (!matchesRegion && !matchesZone) return false;
+                    } else if (regions.length > 0) {
+                        if (!matchesRegion) return false;
+                    } else if (zones.length > 0) {
+                        if (!matchesZone) return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Sort: selected cluster first, then failover clusters, then by name
+            filtered.sort(([idA, clusterA], [idB, clusterB]) => {
+                // Selected cluster always comes first
+                if (idA === selectedClusterId) return -1;
+                if (idB === selectedClusterId) return 1;
+                
+                // Then failover clusters
+                if (clusterA.hasFailover && !clusterB.hasFailover) return -1;
+                if (!clusterA.hasFailover && clusterB.hasFailover) return 1;
+                
+                // Finally alphabetical
+                return clusterA.name.localeCompare(clusterB.name);
+            });
+
+            // Store all filtered clusters and reset to page 1
+            allFilteredClusters = filtered;
+            currentPage = 1;
+            displayClusterResults();
+        }
+
+        function displayClusterResults() {
+            if (allFilteredClusters.length === 0) {
+                clusterResults.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No clusters match the filters</div>';
+                return;
+            }
+
+            // Calculate pagination
+            const totalPages = Math.ceil(allFilteredClusters.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentPageClusters = allFilteredClusters.slice(startIndex, endIndex);
+
+            // Build cluster list HTML
+            const clustersHTML = currentPageClusters.map(([id, cluster]) => {
+                const isSelected = selectedClusterId === id;
+                const failoverClass = cluster.hasFailover ? 'has-failover' : '';
+                const selectedClass = isSelected ? 'selected' : '';
+                const statusIcon = cluster.hasFailover 
+                    ? '<i class="fa-solid fa-triangle-exclamation text-warning"></i>' 
+                    : '<i class="fa-solid fa-circle-check text-success"></i>';
+                
+                return `
+                    <div class="cluster-result-item ${failoverClass} ${selectedClass}" data-cluster-id="${id}">
+                        <div class="cluster-result-name">
+                            ${isSelected ? '<i class="fa-solid fa-circle-check" style="color: var(--color-warning); font-size: 1rem;"></i>' : statusIcon}
+                            <span>${cluster.name}</span>
+                            ${cluster.hasFailover ? '<span style="color: var(--color-warning); font-size: 0.85rem;">(Failover)</span>' : ''}
+                            ${isSelected ? '<span style="color: var(--color-warning); font-size: 0.85rem; font-weight: 600; margin-left: 8px;">SELECTED</span>' : ''}
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                            ${cluster.localities.join(', ')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Build pagination HTML
+            const paginationHTML = buildPaginationHTML(totalPages, startIndex, endIndex);
+
+            // Combine HTML
+            clusterResults.innerHTML = `
+                <div class="cluster-results-list">
+                    ${clustersHTML}
+                </div>
+                ${paginationHTML}
+            `;
+
+            // Add click handlers for clusters
+            clusterResults.querySelectorAll('.cluster-result-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const clusterId = item.dataset.clusterId;
+                    selectCluster(clusterId);
+                });
+            });
+
+            // Add pagination event handlers
+            setupPaginationHandlers(totalPages);
+
+            // If a cluster is selected and it's on the current page, ensure its data is displayed and scroll into view
+            if (selectedClusterId) {
+                const selectedOnPage = currentPageClusters.find(([id]) => id === selectedClusterId);
+                if (selectedOnPage) {
+                    const cluster = clusterData[selectedClusterId];
+                    if (cluster) {
+                        updateClusterSelection(selectedClusterId, cluster);
+                        
+                        // Scroll selected cluster into view
+                        setTimeout(() => {
+                            const selectedItem = clusterResults.querySelector(`.cluster-result-item[data-cluster-id="${selectedClusterId}"]`);
+                            if (selectedItem) {
+                                selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }
+                        }, 100);
+                    }
+                }
+            }
+        }
+
+        function buildPaginationHTML(totalPages, startIndex, endIndex) {
+            const showingFrom = allFilteredClusters.length > 0 ? startIndex + 1 : 0;
+            const showingTo = Math.min(endIndex, allFilteredClusters.length);
+            
+            // Generate page number buttons (show max 5 pages)
+            let pageButtons = '';
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                pageButtons += `
+                    <button class="pagination-page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            return `
+                <div class="cluster-pagination">
+                    <div class="pagination-info">
+                        <span>Showing ${showingFrom}-${showingTo} of ${allFilteredClusters.length}</span>
+                        <div class="pagination-per-page">
+                            <span>Per page:</span>
+                            <select id="items-per-page-select">
+                                <option value="5" ${itemsPerPage === 5 ? 'selected' : ''}>5</option>
+                                <option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option>
+                                <option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20</option>
+                                <option value="50" ${itemsPerPage === 50 ? 'selected' : ''}>50</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="prev-page-btn" ${currentPage === 1 ? 'disabled' : ''}>
+                            <i class="fa-solid fa-chevron-left"></i> Previous
+                        </button>
+                        <div class="pagination-page-numbers">
+                            ${startPage > 1 ? `<button class="pagination-page-btn" data-page="1">1</button>${startPage > 2 ? '<span>...</span>' : ''}` : ''}
+                            ${pageButtons}
+                            ${endPage < totalPages ? `${endPage < totalPages - 1 ? '<span>...</span>' : ''}<button class="pagination-page-btn" data-page="${totalPages}">${totalPages}</button>` : ''}
+                        </div>
+                        <button class="pagination-btn" id="next-page-btn" ${currentPage === totalPages ? 'disabled' : ''}>
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupPaginationHandlers(totalPages) {
+            // Previous button
+            const prevBtn = document.getElementById('prev-page-btn');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        displayClusterResults();
+                    }
+                });
+            }
+
+            // Next button
+            const nextBtn = document.getElementById('next-page-btn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        displayClusterResults();
+                    }
+                });
+            }
+
+            // Page number buttons
+            document.querySelectorAll('.pagination-page-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const page = parseInt(btn.dataset.page);
+                    if (page && page !== currentPage) {
+                        currentPage = page;
+                        displayClusterResults();
+                    }
+                });
+            });
+
+            // Items per page selector
+            const itemsPerPageSelect = document.getElementById('items-per-page-select');
+            if (itemsPerPageSelect) {
+                itemsPerPageSelect.addEventListener('change', (e) => {
+                    itemsPerPage = parseInt(e.target.value);
+                    currentPage = 1;
+                    displayClusterResults();
+                });
+            }
+        }
+
+        function selectCluster(clusterId, skipPageCheck = false) {
+            selectedClusterId = clusterId;
+            const cluster = clusterData[clusterId];
+            if (!cluster) return;
+
+            // Re-sort filtered clusters to put selected one first
+            if (allFilteredClusters.length > 0) {
+                allFilteredClusters.sort(([idA, clusterA], [idB, clusterB]) => {
+                    // Selected cluster always comes first
+                    if (idA === clusterId) return -1;
+                    if (idB === clusterId) return 1;
+                    
+                    // Then failover clusters
+                    if (clusterA.hasFailover && !clusterB.hasFailover) return -1;
+                    if (!clusterA.hasFailover && clusterB.hasFailover) return 1;
+                    
+                    // Finally alphabetical
+                    return clusterA.name.localeCompare(clusterB.name);
+                });
+            }
+
+            // Navigate to page 1 since selected cluster will be at the top
+            if (!skipPageCheck) {
+                currentPage = 1;
+                displayClusterResults();
+                // After display, update selection state
+                setTimeout(() => {
+                    updateClusterSelection(clusterId, cluster);
+                }, 0);
+                return;
+            }
+
+            updateClusterSelection(clusterId, cluster);
+        }
+
+        function updateClusterSelection(clusterId, cluster) {
+            // Update selected state in UI
+            clusterResults.querySelectorAll('.cluster-result-item').forEach(item => {
+                item.classList.toggle('selected', item.dataset.clusterId === clusterId);
+            });
+
+            // Update Source Cluster Summary
+            document.getElementById('summary-name').textContent = cluster.name;
+            document.getElementById('summary-localities-count').textContent = cluster.localities.length;
+            document.getElementById('summary-localities-detail').textContent = cluster.localities.join(', ');
+            document.getElementById('summary-clients').textContent = cluster.sourceIdentities;
+            document.getElementById('summary-resources').textContent = cluster.resourcesAttached;
+            document.getElementById('summary-policies').textContent = cluster.policiesAttached;
+
+            // Show summary
+            sourceClusterSummary.style.display = 'block';
+
+            // Update all charts and data below to be cluster-specific
+            updateTrafficChart(cluster);
+            updateLatencyChart(cluster);
+            updateEvents(cluster);
+            updateEndpoints(cluster);
+        }
+
+        function updateTrafficChart(cluster) {
+            const trafficCard = document.querySelector('.details-grid .card:first-child');
+            if (!trafficCard || !cluster.trafficData) return;
+
+            // Update legend
+            const legendContainer = trafficCard.querySelector('div[style*="padding: 15px 20px 0 20px"]');
+            if (legendContainer) {
+                legendContainer.innerHTML = `
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                        ${cluster.trafficData.map(td => `
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                <div style="width: 12px; height: 12px; background-color: ${td.color}; border-radius: 2px;"></div>
+                                <span style="color: var(--text-secondary);">${td.locality}</span>
+                                <span style="color: var(--text-primary); font-weight: 600;">${td.rps} RPS</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Update chart SVG
+            const chartSvg = trafficCard.querySelector('svg.chart-svg');
+            if (chartSvg) {
+                // Clear existing paths
+                chartSvg.querySelectorAll('path').forEach(p => p.remove());
+                
+                // Add new paths
+                cluster.trafficData.forEach(td => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', td.path);
+                    path.setAttribute('style', `fill:none; stroke:${td.color}; stroke-width:2.5; opacity:0.9`);
+                    chartSvg.appendChild(path);
+                });
+            }
+        }
+
+        function updateLatencyChart(cluster) {
+            const latencyCard = document.querySelector('.details-grid .card:nth-child(2)');
+            if (!latencyCard || !cluster.latencyData) return;
+
+            // Update legend
+            const legendContainer = latencyCard.querySelector('div[style*="padding: 15px 20px 0 20px"]');
+            if (legendContainer) {
+                legendContainer.innerHTML = `
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                            <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
+                            <span style="color: var(--text-secondary);">p99</span>
+                            <span style="color: var(--text-primary); font-weight: 600;">${cluster.latencyData.p99.value}ms</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                            <div style="width: 12px; height: 12px; background-color: var(--color-info, #38bdf8); border-radius: 2px;"></div>
+                            <span style="color: var(--text-secondary);">p90</span>
+                            <span style="color: var(--text-primary); font-weight: 600;">${cluster.latencyData.p90.value}ms</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                            <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
+                            <span style="color: var(--text-secondary);">p50</span>
+                            <span style="color: var(--text-primary); font-weight: 600;">${cluster.latencyData.p50.value}ms</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Update chart SVG
+            const chartSvg = latencyCard.querySelector('svg.chart-svg');
+            if (chartSvg) {
+                // Clear existing paths
+                chartSvg.querySelectorAll('path').forEach(p => p.remove());
+                
+                // Add new paths
+                const paths = [
+                    { data: cluster.latencyData.p50, color: 'var(--color-success)' },
+                    { data: cluster.latencyData.p90, color: 'var(--color-info, #38bdf8)' },
+                    { data: cluster.latencyData.p99, color: 'var(--color-warning)' }
+                ];
+                
+                paths.forEach(p => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', p.data.path);
+                    path.setAttribute('style', `fill:none; stroke:${p.color}; stroke-width:2.5; opacity:0.9`);
+                    chartSvg.appendChild(path);
+                });
+            }
+        }
+
+        function updateEvents(cluster) {
+            const eventsContainer = document.getElementById('events-timeline');
+            if (!eventsContainer || !cluster.events) return;
+
+            eventsContainer.innerHTML = cluster.events.map((event, index) => {
+                const isLive = !event.endTime;
+                return `
+                <div class="timeline-item alert ${isLive ? 'live-event' : ''}" data-event-index="${index}" data-cluster="${cluster.name}">
+                    <div class="tl-time">
+                        ${event.startTime || event.time}
+                        ${event.endTime ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">→ ${event.endTime}</div>` : '<div style="font-size: 0.75rem; color: var(--color-error); margin-top: 2px; font-weight: 600;">LIVE</div>'}
+                    </div>
+                    <div class="tl-content">
+                        <div class="tl-title">
+                            ${event.title}
+                            ${isLive ? '<span style="margin-left: 8px; font-size: 0.75rem; color: var(--color-error); font-weight: 600;">● LIVE</span>' : ''}
+                        </div>
+                        <div class="tl-desc">${event.desc}</div>
+                        <div class="tl-cluster">Cluster: ${cluster.name}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                            ${event.startTime ? `Started: ${event.startTime}` : ''}
+                            ${event.endTime ? ` • Ended: ${event.endTime}` : ' • Ongoing'}
+                        </div>
+                        ${event.failoverTime ? `
+                            <div class="tl-failover-details">
+                                <div style="font-weight: 600; margin-bottom: 6px; color: var(--color-warning);">Failover Details:</div>
+                                <div>Failover occurred at: <strong>${event.failoverTime}</strong></div>
+                                ${event.failoverFrom ? `<div>From: ${event.failoverFrom}</div>` : ''}
+                                ${event.failoverTo ? `<div>To: ${event.failoverTo}</div>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            }).join('');
+
+            // Add click handlers to events
+            eventsContainer.querySelectorAll('.timeline-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const eventIndex = item.dataset.eventIndex;
+                    const clusterName = item.dataset.cluster;
+                    const event = cluster.events[eventIndex];
+                    
+                    // Toggle expanded state
+                    item.classList.toggle('expanded');
+                    
+                    // If event has failover info, show it
+                    if (event.failoverTime && !item.querySelector('.tl-failover-details')) {
+                        const failoverDetails = document.createElement('div');
+                        failoverDetails.className = 'tl-failover-details';
+                        failoverDetails.innerHTML = `
+                            <div style="font-weight: 600; margin-bottom: 6px; color: var(--color-warning);">Failover Details:</div>
+                            <div>Failover occurred at: <strong>${event.failoverTime}</strong></div>
+                            ${event.failoverFrom ? `<div>From: ${event.failoverFrom}</div>` : ''}
+                            ${event.failoverTo ? `<div>To: ${event.failoverTo}</div>` : ''}
+                        `;
+                        item.querySelector('.tl-content').appendChild(failoverDetails);
+                    }
+                });
             });
         }
+
+        // Function to load all events from all clusters
+        function loadAllEvents() {
+            const eventsContainer = document.getElementById('events-timeline');
+            if (!eventsContainer) return;
+
+            // Collect all events from all clusters
+            const allEvents = [];
+            Object.entries(clusterData).forEach(([clusterId, cluster]) => {
+                if (cluster.events) {
+                    cluster.events.forEach(event => {
+                        allEvents.push({
+                            ...event,
+                            cluster: cluster.name,
+                            clusterId: clusterId
+                        });
+                    });
+                }
+            });
+
+            // Sort events by time (most recent first)
+            allEvents.sort((a, b) => {
+                const timeA = a.time.split(':').map(Number);
+                const timeB = b.time.split(':').map(Number);
+                if (timeA[0] !== timeB[0]) return timeB[0] - timeA[0];
+                return timeB[1] - timeA[1];
+            });
+
+            // Render all events
+            eventsContainer.innerHTML = allEvents.map((event, index) => {
+                const isLive = !event.endTime;
+                return `
+                <div class="timeline-item alert ${isLive ? 'live-event' : ''}" data-event-index="${index}" data-cluster="${event.cluster}">
+                    <div class="tl-time">
+                        ${event.startTime || event.time}
+                        ${event.endTime ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">→ ${event.endTime}</div>` : '<div style="font-size: 0.75rem; color: var(--color-error); margin-top: 2px; font-weight: 600;">LIVE</div>'}
+                    </div>
+                    <div class="tl-content">
+                        <div class="tl-title">
+                            ${event.title}
+                            ${isLive ? '<span style="margin-left: 8px; font-size: 0.75rem; color: var(--color-error); font-weight: 600;">● LIVE</span>' : ''}
+                        </div>
+                        <div class="tl-desc">${event.desc}</div>
+                        <div class="tl-cluster">Cluster: ${event.cluster}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                            ${event.startTime ? `Started: ${event.startTime}` : ''}
+                            ${event.endTime ? ` • Ended: ${event.endTime}` : ' • Ongoing'}
+                        </div>
+                        ${event.failoverTime ? `
+                            <div class="tl-failover-details">
+                                <div style="font-weight: 600; margin-bottom: 6px; color: var(--color-warning);">Failover Details:</div>
+                                <div>Failover occurred at: <strong>${event.failoverTime}</strong></div>
+                                ${event.failoverFrom ? `<div>From: ${event.failoverFrom}</div>` : ''}
+                                ${event.failoverTo ? `<div>To: ${event.failoverTo}</div>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            }).join('');
+
+            // Add click handlers to events
+            eventsContainer.querySelectorAll('.timeline-item').forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    const event = allEvents[index];
+                    
+                    // Toggle expanded state
+                    item.classList.toggle('expanded');
+                    
+                    // If event has failover info, show it
+                    if (event.failoverTime) {
+                        let failoverDetails = item.querySelector('.tl-failover-details');
+                        if (!failoverDetails) {
+                            failoverDetails = document.createElement('div');
+                            failoverDetails.className = 'tl-failover-details';
+                            failoverDetails.innerHTML = `
+                                <div style="font-weight: 600; margin-bottom: 6px; color: var(--color-warning);">Failover Details:</div>
+                                <div>Failover occurred at: <strong>${event.failoverTime}</strong></div>
+                                ${event.failoverFrom ? `<div>From: ${event.failoverFrom}</div>` : ''}
+                                ${event.failoverTo ? `<div>To: ${event.failoverTo}</div>` : ''}
+                            `;
+                            item.querySelector('.tl-content').appendChild(failoverDetails);
+                        }
+                    }
+                });
+            });
+        }
+
+        // Function to update live event
+        function updateLiveEvent() {
+            const liveEventSection = document.getElementById('live-event-content');
+            if (!liveEventSection) return;
+
+            // Get all events without an end time (live events)
+            const liveEvents = [];
+            Object.entries(clusterData).forEach(([clusterId, cluster]) => {
+                if (cluster.events && cluster.events.length > 0) {
+                    cluster.events.forEach(event => {
+                        if (!event.endTime) {
+                            liveEvents.push({
+                                ...event,
+                                cluster: cluster.name
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Sort by start time (most recent first)
+            if (liveEvents.length > 0) {
+                liveEvents.sort((a, b) => {
+                    const timeA = (a.startTime || a.time).split(':').map(Number);
+                    const timeB = (b.startTime || b.time).split(':').map(Number);
+                    if (timeA[0] !== timeB[0]) return timeB[0] - timeA[0];
+                    if (timeA[1] !== timeB[1]) return timeB[1] - timeA[1];
+                    return (timeB[2] || 0) - (timeA[2] || 0);
+                });
+
+                const mostRecent = liveEvents[0];
+                liveEventSection.innerHTML = `
+                    <div style="margin-bottom: 8px;">
+                        <strong style="color: var(--text-primary);">${mostRecent.title}</strong>
+                        <span style="margin-left: 8px; font-size: 0.75rem; color: var(--color-error); font-weight: 600;">● LIVE</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                        ${mostRecent.desc}
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--accent); margin-top: 6px;">
+                        Cluster: ${mostRecent.cluster} • Started: ${mostRecent.startTime || mostRecent.time}
+                    </div>
+                `;
+            } else {
+                liveEventSection.innerHTML = `
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">No live events</div>
+                `;
+            }
+        }
+
+        function updateEndpoints(cluster) {
+            const endpointsCard = document.querySelector('#backend .card');
+            if (!endpointsCard || !cluster.endpoints) return;
+
+            // Flatten all endpoints with their group info and cluster name
+            allEndpoints = [];
+            cluster.endpoints.forEach(epGroup => {
+                epGroup.items.forEach(item => {
+                    allEndpoints.push({
+                        ...item,
+                        groupLocality: epGroup.locality,
+                        clusterName: cluster.name
+                    });
+                });
+            });
+
+            // Apply filters and display
+            filterEndpoints();
+        }
+
+        // Function to get all endpoints from all clusters (for multi-cluster view)
+        function getAllEndpointsFromAllClusters() {
+            allEndpoints = [];
+            Object.entries(clusterData).forEach(([clusterId, cluster]) => {
+                if (cluster.endpoints) {
+                    cluster.endpoints.forEach(epGroup => {
+                        epGroup.items.forEach(item => {
+                            allEndpoints.push({
+                                ...item,
+                                groupLocality: epGroup.locality,
+                                clusterName: cluster.name
+                            });
+                        });
+                    });
+                }
+            });
+        }
+
+        function getEndpointStatusIcon(status) {
+            switch(status) {
+                case 'error': return '<i class="fa-solid fa-circle-xmark text-error endpoint-status-icon"></i>';
+                case 'warning': return '<i class="fa-solid fa-triangle-exclamation text-warning endpoint-status-icon"></i>';
+                case 'ok': return '<i class="fa-solid fa-circle-check text-success endpoint-status-icon"></i>';
+                default: return '<i class="fa-solid fa-circle text-secondary endpoint-status-icon"></i>';
+            }
+        }
+
+        function filterEndpoints() {
+            const nameFilter = document.getElementById('filter-endpoint-name')?.value.toLowerCase() || '';
+            const selectedClusters = [];
+            document.querySelectorAll('input[type="checkbox"][id^="endpoint-cluster-"]:checked').forEach(cb => {
+                selectedClusters.push(cb.value);
+            });
+            const selectedStatus = [];
+            document.querySelectorAll('input[type="checkbox"][id^="endpoint-status-"]:checked').forEach(cb => {
+                selectedStatus.push(cb.value);
+            });
+            const selectedTypes = [];
+            document.querySelectorAll('input[type="checkbox"][id^="endpoint-type-"]:checked').forEach(cb => {
+                selectedTypes.push(cb.value);
+            });
+            const { regions, zones } = getSelectedEndpointRegionsAndZones();
+
+            // Show/hide clear filters button
+            const hasFilters = nameFilter || selectedClusters.length > 0 || selectedStatus.length > 0 || selectedTypes.length > 0 || Object.keys(selectedEndpointLabels).length > 0 || regions.length > 0 || zones.length > 0;
+            const clearBtn = document.getElementById('clear-endpoint-filters');
+            if (clearBtn) {
+                clearBtn.style.display = hasFilters ? 'block' : 'none';
+            }
+
+            // Update badges
+            updateBadge('filter-endpoint-clusters-badge', selectedClusters.length, 'All Clusters');
+            updateBadge('filter-endpoint-status-badge', selectedStatus.length, 'All Status');
+            updateBadge('filter-endpoint-type-badge', selectedTypes.length, 'All Types');
+            updateBadge('filter-endpoint-labels-badge', Object.keys(selectedEndpointLabels).length, 'Add Labels');
+            updateBadge('filter-endpoint-localities-badge', regions.length + zones.length, 'All Localities');
+
+            // Filter endpoints
+            const filtered = allEndpoints.filter(endpoint => {
+                // Name filter
+                if (nameFilter && !endpoint.name.toLowerCase().includes(nameFilter)) {
+                    return false;
+                }
+
+                // Cluster filter
+                if (selectedClusters.length > 0 && !selectedClusters.includes(endpoint.clusterName)) {
+                    return false;
+                }
+
+                // Status filter
+                if (selectedStatus.length > 0 && !selectedStatus.includes(endpoint.status)) {
+                    return false;
+                }
+
+                // Type filter
+                if (selectedTypes.length > 0 && !selectedTypes.includes(endpoint.type)) {
+                    return false;
+                }
+
+                // Labels filter
+                if (Object.keys(selectedEndpointLabels).length > 0) {
+                    for (const [key, value] of Object.entries(selectedEndpointLabels)) {
+                        if (endpoint.labels[key] !== value) {
+                            return false;
+                        }
+                    }
+                }
+
+                // Locality filter
+                if (regions.length > 0 || zones.length > 0) {
+                    let matchesRegion = false;
+                    let matchesZone = false;
+                    
+                    if (regions.length > 0) {
+                        for (const region of regions) {
+                            const regionZones = regionZoneMap[region] || [];
+                            if (regionZones.includes(endpoint.locality)) {
+                                matchesRegion = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (zones.length > 0) {
+                        matchesZone = zones.includes(endpoint.locality);
+                    }
+                    
+                    if (regions.length > 0 && zones.length > 0) {
+                        if (!matchesRegion && !matchesZone) return false;
+                    } else if (regions.length > 0) {
+                        if (!matchesRegion) return false;
+                    } else if (zones.length > 0) {
+                        if (!matchesZone) return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Group filtered endpoints by locality
+            const grouped = {};
+            filtered.forEach(endpoint => {
+                if (!grouped[endpoint.groupLocality]) {
+                    grouped[endpoint.groupLocality] = [];
+                }
+                grouped[endpoint.groupLocality].push(endpoint);
+            });
+
+            // Update display
+            displayFilteredEndpoints(grouped);
+        }
+
+        function getSelectedEndpointRegionsAndZones() {
+            const selectedRegions = [];
+            const selectedZones = [];
+            
+            document.querySelectorAll('input[type="checkbox"][id^="endpoint-region-"]:checked').forEach(cb => {
+                selectedRegions.push(cb.dataset.region);
+            });
+            
+            document.querySelectorAll('input[type="checkbox"][id^="endpoint-zone-"]:checked').forEach(cb => {
+                selectedZones.push(cb.value);
+            });
+            
+            return { regions: selectedRegions, zones: selectedZones };
+        }
+
+        function displayFilteredEndpoints(grouped) {
+            const endpointsCard = document.querySelector('#backend .card');
+            if (!endpointsCard) return;
+
+            // Flatten all endpoints from all groups into a single array
+            const allFilteredEndpoints = Object.values(grouped).flat();
+
+            const totalHealthy = allFilteredEndpoints.filter(ep => ep.healthy).length;
+            const totalEndpoints = allFilteredEndpoints.length;
+
+            const header = endpointsCard.querySelector('.endpoints-header');
+            if (header) {
+                header.textContent = `Endpoints (${totalHealthy}/${totalEndpoints} Healthy)`;
+            }
+
+            const endpointGroups = document.getElementById('backend-endpoint-groups');
+            if (!endpointGroups) return;
+
+            if (allFilteredEndpoints.length === 0) {
+                endpointGroups.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-secondary);">No endpoints match the filters</div>';
+                return;
+            }
+
+            endpointGroups.innerHTML = `
+                <table class="endpoints-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allFilteredEndpoints.map(item => {
+                            const statusText = item.status === 'ok' ? 'OK' : item.status === 'warning' ? 'Warning' : 'Error';
+                            return `
+                            <tr class="${item.status === 'error' ? 'failing' : ''}">
+                                <td>
+                                    <div class="endpoint-name-cell">
+                                        <span style="font-weight: 600;">${item.name}</span>
+                                        <span class="endpoint-type-badge">${item.type}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="endpoint-status-badge status-${item.status}">
+                                        ${getEndpointStatusIcon(item.status)}
+                                        <span>${statusText}</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="endpoint-details-cell">
+                                        ${(() => {
+                                            const podStatus = item.podStatus || 'Ready';
+                                            let statusClass = 'pod-status-ready';
+                                            if (podStatus.includes('Readiness') || podStatus.includes('terminating') || podStatus === 'Error') {
+                                                statusClass = 'pod-status-error';
+                                            } else if (podStatus.includes('Liveness') || podStatus.includes('Warning')) {
+                                                statusClass = 'pod-status-warning';
+                                            }
+                                            return `<span class="${statusClass}">${podStatus}</span>`;
+                                        })()}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Dropdown toggle functionality
+        document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+            const button = dropdown.querySelector('.filter-badge');
+            const content = dropdown.querySelector('.filter-dropdown-content');
+            
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close other dropdowns
+                document.querySelectorAll('.filter-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('active');
+                });
+                dropdown.classList.toggle('active');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown')) {
+                document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('active'));
+            }
+        });
+
+        // Label management functions
+        function renderLabelTags() {
+            const container = document.getElementById('label-tags-container');
+            if (!container) return;
+            
+            container.innerHTML = Object.entries(selectedLabels).map(([key, value]) => `
+                <div class="label-tag">
+                    <span>${key}=${value}</span>
+                    <i class="fa-solid fa-xmark remove" data-key="${key}"></i>
+                </div>
+            `).join('');
+            
+            // Add remove handlers
+            container.querySelectorAll('.remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const key = e.target.dataset.key;
+                    delete selectedLabels[key];
+                    renderLabelTags();
+                    filterClusters();
+                });
+            });
+        }
+
+        // Add label handler
+        const addLabelBtn = document.getElementById('add-label-btn');
+        const labelKeyInput = document.getElementById('label-key-input');
+        const labelValueInput = document.getElementById('label-value-input');
+        
+        if (addLabelBtn && labelKeyInput && labelValueInput) {
+            addLabelBtn.addEventListener('click', () => {
+                const key = labelKeyInput.value.trim();
+                const value = labelValueInput.value.trim();
+                if (key && value) {
+                    selectedLabels[key] = value;
+                    labelKeyInput.value = '';
+                    labelValueInput.value = '';
+                    renderLabelTags();
+                    filterClusters();
+                }
+            });
+            
+            // Allow Enter key to add label
+            [labelKeyInput, labelValueInput].forEach(input => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        addLabelBtn.click();
+                    }
+                });
+            });
+        }
+
+        // Region/Zone hierarchy handlers
+        document.querySelectorAll('.region-header').forEach(header => {
+            const regionCheckbox = header.querySelector('input[type="checkbox"]');
+            const zoneList = header.nextElementSibling;
+            const chevron = header.querySelector('i');
+            
+            // Toggle zone list visibility
+            header.addEventListener('click', (e) => {
+                if (e.target === regionCheckbox) return; // Don't toggle if clicking checkbox
+                zoneList.classList.toggle('collapsed');
+                header.classList.toggle('collapsed');
+            });
+            
+            // Region checkbox: select/deselect all zones in region
+            if (regionCheckbox) {
+                regionCheckbox.addEventListener('change', (e) => {
+                    const zones = zoneList.querySelectorAll('input[type="checkbox"]');
+                    zones.forEach(zone => {
+                        zone.checked = e.target.checked;
+                    });
+                    filterClusters();
+                });
+            }
+            
+            // Zone checkbox: update region checkbox state
+            zoneList.querySelectorAll('input[type="checkbox"]').forEach(zoneCheckbox => {
+                zoneCheckbox.addEventListener('change', () => {
+                    const zones = zoneList.querySelectorAll('input[type="checkbox"]');
+                    const allChecked = Array.from(zones).every(z => z.checked);
+                    const someChecked = Array.from(zones).some(z => z.checked);
+                    regionCheckbox.checked = allChecked;
+                    regionCheckbox.indeterminate = someChecked && !allChecked;
+                    filterClusters();
+                });
+            });
+        });
+
+        // Initialize filters
+        if (filterNameInput) {
+            filterNameInput.addEventListener('input', filterClusters);
+        }
+
+        // Status checkboxes
+        document.querySelectorAll('input[type="checkbox"][id^="status-"]').forEach(checkbox => {
+            checkbox.addEventListener('change', filterClusters);
+        });
+
+        // Zone checkboxes (region handlers already set above)
+        document.querySelectorAll('input[type="checkbox"][id^="zone-"]').forEach(checkbox => {
+            checkbox.addEventListener('change', filterClusters);
+        });
+
+        // Clear filters button
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', () => {
+                if (filterNameInput) filterNameInput.value = '';
+                selectedLabels = {};
+                renderLabelTags();
+                document.querySelectorAll('input[type="checkbox"][id^="status-"], input[type="checkbox"][id^="region-"], input[type="checkbox"][id^="zone-"]').forEach(cb => {
+                    cb.checked = false;
+                    cb.indeterminate = false;
+                });
+                filterClusters();
+            });
+        }
+
+        // Initial render
+        renderLabelTags();
+        filterClusters();
+        
+        // Initialize Events tab if it's visible
+        const eventsTab = document.getElementById('events');
+        if (eventsTab && eventsTab.classList.contains('active')) {
+            loadAllEvents();
+            updateLiveEvent();
+        }
+
+        // --- Endpoint Filtering ---
+        function renderEndpointLabelTags() {
+            const container = document.getElementById('endpoint-label-tags-container');
+            if (!container) return;
+            
+            container.innerHTML = Object.entries(selectedEndpointLabels).map(([key, value]) => `
+                <div class="label-tag">
+                    <span>${key}=${value}</span>
+                    <i class="fa-solid fa-xmark remove" data-key="${key}"></i>
+                </div>
+            `).join('');
+            
+            container.querySelectorAll('.remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const key = e.target.dataset.key;
+                    delete selectedEndpointLabels[key];
+                    renderEndpointLabelTags();
+                    filterEndpoints();
+                });
+            });
+        }
+
+        // Endpoint label handler
+        const addEndpointLabelBtn = document.getElementById('add-endpoint-label-btn');
+        const endpointLabelKeyInput = document.getElementById('endpoint-label-key-input');
+        const endpointLabelValueInput = document.getElementById('endpoint-label-value-input');
+        
+        if (addEndpointLabelBtn && endpointLabelKeyInput && endpointLabelValueInput) {
+            addEndpointLabelBtn.addEventListener('click', () => {
+                const key = endpointLabelKeyInput.value.trim();
+                const value = endpointLabelValueInput.value.trim();
+                if (key && value) {
+                    selectedEndpointLabels[key] = value;
+                    endpointLabelKeyInput.value = '';
+                    endpointLabelValueInput.value = '';
+                    renderEndpointLabelTags();
+                    filterEndpoints();
+                }
+            });
+            
+            [endpointLabelKeyInput, endpointLabelValueInput].forEach(input => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        addEndpointLabelBtn.click();
+                    }
+                });
+            });
+        }
+
+        // Endpoint region/zone handlers
+        document.querySelectorAll('#filter-endpoint-localities-dropdown .region-header').forEach(header => {
+            const regionCheckbox = header.querySelector('input[type="checkbox"]');
+            const zoneList = header.nextElementSibling;
+            
+            header.addEventListener('click', (e) => {
+                if (e.target === regionCheckbox) return;
+                zoneList.classList.toggle('collapsed');
+                header.classList.toggle('collapsed');
+            });
+            
+            if (regionCheckbox) {
+                regionCheckbox.addEventListener('change', (e) => {
+                    const zones = zoneList.querySelectorAll('input[type="checkbox"]');
+                    zones.forEach(zone => {
+                        zone.checked = e.target.checked;
+                    });
+                    filterEndpoints();
+                });
+            }
+            
+            zoneList.querySelectorAll('input[type="checkbox"]').forEach(zoneCheckbox => {
+                zoneCheckbox.addEventListener('change', () => {
+                    const zones = zoneList.querySelectorAll('input[type="checkbox"]');
+                    const allChecked = Array.from(zones).every(z => z.checked);
+                    const someChecked = Array.from(zones).some(z => z.checked);
+                    regionCheckbox.checked = allChecked;
+                    regionCheckbox.indeterminate = someChecked && !allChecked;
+                    filterEndpoints();
+                });
+            });
+        });
+
+        // Endpoint filter inputs
+        const filterEndpointNameInput = document.getElementById('filter-endpoint-name');
+        if (filterEndpointNameInput) {
+            filterEndpointNameInput.addEventListener('input', filterEndpoints);
+        }
+
+        document.querySelectorAll('input[type="checkbox"][id^="endpoint-status-"], input[type="checkbox"][id^="endpoint-type-"], input[type="checkbox"][id^="endpoint-cluster-"]').forEach(checkbox => {
+            checkbox.addEventListener('change', filterEndpoints);
+        });
+
+        document.querySelectorAll('input[type="checkbox"][id^="endpoint-zone-"]').forEach(checkbox => {
+            checkbox.addEventListener('change', filterEndpoints);
+        });
+
+        // Clear endpoint filters button
+        const clearEndpointFiltersBtn = document.getElementById('clear-endpoint-filters');
+        if (clearEndpointFiltersBtn) {
+            clearEndpointFiltersBtn.addEventListener('click', () => {
+                if (filterEndpointNameInput) filterEndpointNameInput.value = '';
+                selectedEndpointLabels = {};
+                renderEndpointLabelTags();
+                document.querySelectorAll('input[type="checkbox"][id^="endpoint-status-"], input[type="checkbox"][id^="endpoint-type-"], input[type="checkbox"][id^="endpoint-cluster-"], input[type="checkbox"][id^="endpoint-region-"], input[type="checkbox"][id^="endpoint-zone-"]').forEach(cb => {
+                    cb.checked = false;
+                    cb.indeterminate = false;
+                });
+                filterEndpoints();
+            });
+        }
+
+        // Initial endpoint label tags render
+        renderEndpointLabelTags();
+
     </script>
 </body>
 </html>

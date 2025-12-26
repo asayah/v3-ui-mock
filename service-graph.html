@@ -1,3 +1,12 @@
+<!--
+    Usecase: Global Service Failover Monitoring and Restoration
+    
+    This page represents the view that Cesar, the Platform Engineer, would see when a failover is in progress.
+
+    - The graph shows that traffic from the "Internet" is no longer flowing to "us-east-1" (0%).
+    - The traffic is now flowing to "us-west-2" (60%) and "eu-central-1" (40%).
+    - The 'checkout (primary)' service in 'us-east-1' is highlighted in red, indicating it's the source of the failover.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -378,66 +387,41 @@
 
         const elements = {
             nodes: [
-                // Cluster parent nodes
-                { data: { id: 'cluster-a', label: 'Cluster A' } },
-                { data: { id: 'cluster-b', label: 'Cluster B' } },
+                // Traffic Source
+                { data: { id: 'traffic-source', label: 'Internet Traffic', type: 'webapp' } },
 
-                // Simplified Service nodes
+                // Cluster parent nodes
+                { data: { id: 'us-east-1', label: 'us-east-1' } },
+                { data: { id: 'us-west-2', label: 'us-west-2' } },
+                { data: { id: 'eu-central-1', label: 'eu-central-1' } },
+
+                // Service nodes
                 { data: { 
-                    id: 'frontend-app', label: 'Frontend App', type: 'webapp', parent: 'cluster-a',
-                    timeSeries: {
-                        p99: generateTimeSeriesData(),
-                        p95: generateTimeSeriesData(),
-                        rps: generateTimeSeriesData(),
-                        status_2xx: generateTimeSeriesData(),
-                        status_4xx: generateTimeSeriesData(),
-                        status_5xx: generateTimeSeriesData(),
-                    },
-                    authPolicies: []
+                    id: 'checkout-us-east-1', label: 'checkout (primary)', parent: 'us-east-1', type: 'service-failover',
+                    workloads: [ { id: 'checkout-w1', name: 'checkout-v1-pod1', status: 'down'} ],
                 } },
                 { data: { 
-                    id: 'payment-service', label: 'Payment Service', type: 'service', parent: 'cluster-a',
-                    timeSeries: {
-                        p99: generateTimeSeriesData(),
-                        p95: generateTimeSeriesData(),
-                        rps: generateTimeSeriesData(),
-                        status_2xx: generateTimeSeriesData(),
-                        status_4xx: generateTimeSeriesData(),
-                        status_5xx: generateTimeSeriesData(),
-                    },
-                    authPolicies: [
-                        { name: 'allow-frontend-access', yaml: 'apiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: allow-frontend-access\n  namespace: default\nspec:\n  selector:\n    matchLabels:\n      app: payment-service\n  action: ALLOW\n  rules:\n  - from:\n    - source:\n        principals: ["cluster.local/ns/default/sa/frontend-app"]' }
-                    ]
+                    id: 'checkout-us-west-2', label: 'checkout (failover)', parent: 'us-west-2', type: 'service' 
                 } },
-                { data: { 
-                    id: 'checkout-service', label: 'Checkout Service', type: 'service-failover', parent: 'cluster-a', 
-                    timeSeries: {
-                        p99: generateTimeSeriesData(),
-                        p95: generateTimeSeriesData(),
-                        rps: generateTimeSeriesData(),
-                        status_2xx: generateTimeSeriesData(),
-                        status_4xx: generateTimeSeriesData(),
-                        status_5xx: generateTimeSeriesData(),
-                    },
-                    workloads: [
-                        { id: 'checkout-w1', name: 'checkout-v1-pod1', parent: 'cluster-a', status: 'down'}, 
-                        { id: 'checkout-w2', name: 'checkout-v1-pod2', parent: 'cluster-a', status: 'down'},
-                        { id: 'checkout-w3', name: 'checkout-v2-pod1', parent: 'cluster-b', status: 'up'}
-                    ],
-                    authPolicies: [
-                        { name: 'deny-all-untrusted', yaml: 'apiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: deny-all-untrusted\n  namespace: default\nspec:\n  selector:\n    matchLabels:\n      app: checkout-service\n  action: DENY' },
-                        { name: 'allow-payments', yaml: 'apiVersion: security.istio.io/v1beta1\nkind: AuthorizationPolicy\nmetadata:\n  name: allow-payments\n  namespace: default\nspec:\n  selector:\n    matchLabels:\n      app: checkout-service\n  action: ALLOW\n  rules:\n  - from:\n    - source:\n        principals: ["cluster.local/ns/default/sa/payment-service"]' },
-                        { name: 'policy-3', yaml: '...'},
-                        { name: 'policy-4', yaml: '...'},
-                        { name: 'policy-5', yaml: '...'},
-                        { name: 'policy-6', yaml: '...'},
-                    ]
+                 { data: { 
+                    id: 'checkout-eu-central-1', label: 'checkout (failover)', parent: 'eu-central-1', type: 'service' 
                 } },
+
+                // Dependent services
+                { data: { id: 'payment-service', label: 'Payment Service', parent: 'us-east-1', type: 'service' } },
+                { data: { id: 'inventory-service', label: 'Inventory Service', parent: 'us-west-2', type: 'service' } },
+
             ],
             edges: [
-                { data: { source: 'frontend-app', target: 'checkout-service' } },
-                { data: { source: 'payment-service', target: 'checkout-service' } },
-                { data: { source: 'checkout-service', target: 'payment-service' } },
+                // Failover path
+                { data: { source: 'traffic-source', target: 'checkout-us-east-1', label: '0%', state: 'down' } },
+                { data: { source: 'traffic-source', target: 'checkout-us-west-2', label: '60%', state: 'up' } },
+                { data: { source: 'traffic-source', target: 'checkout-eu-central-1', label: '40%', state: 'up' } },
+
+                // Backend service connections
+                { data: { source: 'checkout-us-east-1', target: 'payment-service' } },
+                { data: { source: 'checkout-us-west-2', target: 'inventory-service' } },
+                { data: { source: 'checkout-eu-central-1', target: 'inventory-service' } },
             ]
         };
         var cy = cytoscape({
@@ -460,6 +444,12 @@
                     }
                 },
                 {
+                    selector: '[type = "webapp"]',
+                    style: {
+                        'shape': 'rectangle',
+                    }
+                },
+                {
                     selector: ':parent',
                     style: {
                         'background-color': '#161B22',
@@ -476,65 +466,39 @@
                 {
                     selector: '[type = "service-failover"]',
                     style: {
-                        'border-color': '#F59E0B', // Yellow
-                    }
-                },
-                {
-                    selector: '.infra-node',
-                    style: {
-                        'shape': 'hexagon',
-                        'background-color': '#4B4F58',
-                        'border-color': '#8B949E',
-                        'width': 40,
-                        'height': 40,
-                        'font-size': 10,
-                        'text-margin-y': 4,
-                    }
-                },
-                {
-                    selector: '.workload-node',
-                    style: {
-                        'width': 30,
-                        'height': 30,
-                        'font-size': 10,
-                        'text-margin-y': 4,
-                    }
-                },
-                {
-                    selector: '.workload-up',
-                    style: {
-                        'background-color': '#238636',
-                        'border-color': '#388E3C',
-                    }
-                },
-                {
-                    selector: '.workload-down',
-                    style: {
-                        'background-color': '#DA3633',
-                        'border-color': '#C93C37',
+                        'border-color': 'var(--color-error)',
                     }
                 },
                 {
                     selector: 'edge',
                     style: {
-                        'width': 2,
+                        'width': 2.5,
                         'line-color': '#484F58',
                         'target-arrow-color': '#484F58',
                         'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier'
+                        'curve-style': 'bezier',
+                        'label': 'data(label)',
+                        'color': '#C9D1D9',
+                        'font-size': 12,
+                        'text-background-color': '#0D1117',
+                        'text-background-opacity': 1,
+                        'text-background-padding': '3px',
                     }
                 },
                 {
-                    selector: 'edge[target *= "checkout-w"]',
+                    selector: 'edge[state = "down"]',
                     style: {
-                        'line-color': (edge) => {
-                            const target = edge.target();
-                            return target.hasClass('workload-down') ? '#DA3633' : '#238636';
-                        },
-                        'target-arrow-color': (edge) => {
-                            const target = edge.target();
-                            return target.hasClass('workload-down') ? '#DA3633' : '#238636';
-                        },
+                        'line-color': 'var(--color-error)',
+                        'target-arrow-color': 'var(--color-error)',
+                        'line-style': 'dashed',
+                    }
+                },
+                {
+                    selector: 'edge[state = "up"]',
+                    style: {
+                        'line-color': 'var(--color-success)',
+                        'target-arrow-color': 'var(--color-success)',
+                        'width': 4,
                     }
                 },
                 {
@@ -549,8 +513,9 @@
             ],
             layout: {
                 name: 'cose',
-                idealEdgeLength: 100,
-                nodeRepulsion: 400000,
+                animate: false,
+                idealEdgeLength: 150,
+                nodeRepulsion: 800000,
                 edgeElasticity: 100,
                 nestingFactor: 5,
                 gravity: 80,
@@ -566,14 +531,10 @@
         const clusterFilters = document.getElementById('cluster-filters');
         const namespaceFilters = document.getElementById('namespace-filters');
         const labelFilters = document.getElementById('label-filters');
-
-        const clusters = [...new Set(cy.nodes('[?cluster]').map(n => n.data('cluster')))];
-        const namespaces = [...new Set(cy.nodes('[?namespace]').map(n => n.data('namespace')))];
-        const labels = [...new Set(cy.nodes().flatMap(n => n.data('appLabels') || []))];
-
+        
+        const clusters = [...new Set(cy.nodes().map(n => n.data('parent')))].filter(Boolean);
         clusterFilters.innerHTML = clusters.map(c => c ? `<label class="checkbox-label"><input type="checkbox" value="${c}" checked> ${c}</label>` : '').join('');
-        namespaceFilters.innerHTML = namespaces.map(ns => ns ? `<label class="checkbox-label"><input type="checkbox" value="${ns}" checked> ${ns}</label>` : '').join('');
-        labelFilters.innerHTML = labels.map(l => l ? `<label class="checkbox-label"><input type="checkbox" value="${l}" checked> ${l}</label>` : '').join('');
+
 
         const debounce = (fn, delay) => {
             let timeoutId;
@@ -586,24 +547,24 @@
         const applyFilters = () => {
             const searchText = searchInput.value.toLowerCase();
             const checkedClusters = [...clusterFilters.querySelectorAll('input:checked')].map(cb => cb.value);
-            const checkedNamespaces = [...namespaceFilters.querySelectorAll('input:checked')].map(cb => cb.value);
-            const checkedLabels = [...labelFilters.querySelectorAll('input:checked')].map(cb => cb.value);
 
             cy.nodes().forEach(node => {
                 const data = node.data();
                 const isParent = !data.parent;
+                const parentId = data.parent;
 
-                // Keep parent nodes always visible for context
-                if (isParent) {
-                    node.style('display', 'element');
-                    return;
+                let isVisible = true;
+
+                if (searchText && data.label.toLowerCase().indexOf(searchText) === -1) {
+                    isVisible = false;
                 }
 
-                const isVisible = 
-                    (searchText === '' || (data.label && data.label.toLowerCase().includes(searchText))) &&
-                    (checkedClusters.length === 0 || checkedClusters.includes(data.cluster)) &&
-                    (checkedNamespaces.length === 0 || checkedNamespaces.includes(data.namespace)) &&
-                    (checkedLabels.length === 0 || (data.appLabels || []).some(l => checkedLabels.includes(l)));
+                // Show node if its parent cluster is checked, or if it's a parent itself
+                if (parentId) {
+                    if (!checkedClusters.includes(parentId)) {
+                        isVisible = false;
+                    }
+                }
                 
                 if (isVisible) {
                     node.style('display', 'element');
@@ -613,187 +574,47 @@
             });
         };
 
+
         searchInput.addEventListener('keyup', debounce(applyFilters, 300));
         clusterFilters.addEventListener('change', applyFilters);
-        namespaceFilters.addEventListener('change', applyFilters);
-        labelFilters.addEventListener('change', applyFilters);
 
         const detailsPanel = document.getElementById('details-panel');
         const detailsHeader = document.getElementById('details-header');
         const detailsContent = document.getElementById('details-content');
 
-        let selectedNodeId = null;
-        let latencyChart = null;
-        let rpsChart = null;
-        let statusChart = null;
-
-        const renderAuthPolicies = (policies, container) => {
-            const searchInput = container.querySelector('.auth-policy-search');
-            const paginationContainer = container.querySelector('.pagination');
-            const policyListContainer = container.querySelector('.auth-policy-list');
-            
-            let currentPage = 1;
-            const itemsPerPage = 3;
-            let filteredPolicies = policies;
-
-            const renderPage = () => {
-                policyListContainer.innerHTML = '';
-                const start = (currentPage - 1) * itemsPerPage;
-                const end = start + itemsPerPage;
-                const paginatedPolicies = filteredPolicies.slice(start, end);
-
-                paginatedPolicies.forEach(policy => {
-                    const item = document.createElement('div');
-                    item.className = 'auth-policy-item';
-                    item.innerHTML = `
-                        <div class="auth-policy-item-header">
-                            <span class="auth-policy-name">${policy.name}</span>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </div>
-                        <div class="auth-policy-details">
-                            <pre>${policy.yaml}</pre>
-                        </div>
-                    `;
-                    policyListContainer.appendChild(item);
-
-                    item.querySelector('.auth-policy-item-header').addEventListener('click', () => {
-                        item.classList.toggle('expanded');
-                    });
-                });
-            };
-
-            const renderPagination = () => {
-                paginationContainer.innerHTML = '';
-                const pageCount = Math.ceil(filteredPolicies.length / itemsPerPage);
-                if (pageCount <= 1) return;
-
-                const prevButton = document.createElement('button');
-                prevButton.innerText = 'Prev';
-                prevButton.disabled = currentPage === 1;
-                prevButton.addEventListener('click', () => {
-                    currentPage--;
-                    renderPage();
-                    renderPagination();
-                });
-                paginationContainer.appendChild(prevButton);
-
-                const nextButton = document.createElement('button');
-                nextButton.innerText = 'Next';
-                nextButton.disabled = currentPage === pageCount;
-                nextButton.addEventListener('click', () => {
-                    currentPage++;
-                    renderPage();
-                    renderPagination();
-                });
-                paginationContainer.appendChild(nextButton);
-            };
-            
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                filteredPolicies = policies.filter(p => p.name.toLowerCase().includes(searchTerm));
-                currentPage = 1;
-                renderPage();
-                renderPagination();
-            });
-
-            renderPage();
-            renderPagination();
-        };
-
-        const createChart = (ctx, title, datasets, labels) => {
-            return new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true, labels: { color: '#C9D1D9' } },
-                        title: { display: true, text: title, color: '#C9D1D9' }
-                    },
-                    scales: {
-                        x: { ticks: { color: '#8B949E' }, grid: { color: '#30363d' } },
-                        y: { ticks: { color: '#8B949E' }, grid: { color: '#30363d' } }
-                    }
-                }
-            });
-        };
-
-        cy.on('tap', 'node[type]', function(evt){
+        cy.on('tap', 'node', function(evt){
             const node = evt.target;
             const data = node.data();
-            selectedNodeId = data.id;
+            
+            if (!data.type) return; // Don't show panel for parent nodes
 
             detailsHeader.innerHTML = `<i class="fa-solid fa-cube"></i> ${data.label}`;
             
-            let content = `
-                <div class="details-section">
-                    <div class="chart-container"><canvas id="latency-chart"></canvas></div>
-                    <div class="chart-container"><canvas id="rps-chart"></canvas></div>
-                    <div class="chart-container"><canvas id="status-chart"></canvas></div>
-                </div>
-            `;
+            let content = '';
 
-            if (data.authPolicies) {
+             if (data.workloads) {
                 content += `
                     <div class="details-section">
-                        <div class="auth-policy-header">
-                            <div class="details-section-title">Authorization Policies</div>
-                            <input type="text" class="auth-policy-search" placeholder="Search policies...">
+                        <div class="details-section-title">Workloads</div>
+                        <div class="workload-list">
+                            ${data.workloads.map(w => `
+                                <div class="workload-item ${w.status === 'down' ? 'down' : ''}">
+                                    <div class="workload-name">${w.name}</div>
+                                    <div class="workload-details">${w.status.toUpperCase()}</div>
+                                </div>
+                            `).join('')}
                         </div>
-                        <div class="auth-policy-list"></div>
-                        <div class="pagination"></div>
                     </div>
                 `;
             }
 
             detailsContent.innerHTML = content;
             detailsPanel.classList.add('visible');
-
-            if (latencyChart) latencyChart.destroy();
-            if (rpsChart) rpsChart.destroy();
-            if (statusChart) statusChart.destroy();
-
-            latencyChart = createChart(
-                document.getElementById('latency-chart').getContext('2d'),
-                'Latency (ms)',
-                [
-                    { label: 'p99', data: data.timeSeries.p99.data, borderColor: '#F59E0B', tension: 0.1 },
-                    { label: 'p95', data: data.timeSeries.p95.data, borderColor: '#3B82F6', tension: 0.1 }
-                ],
-                data.timeSeries.p99.labels
-            );
-            
-            rpsChart = createChart(
-                document.getElementById('rps-chart').getContext('2d'),
-                'RPS',
-                [{ label: 'RPS', data: data.timeSeries.rps.data, borderColor: '#10B981', tension: 0.1 }],
-                data.timeSeries.rps.labels
-            );
-
-            statusChart = createChart(
-                document.getElementById('status-chart').getContext('2d'),
-                'Status Codes',
-                [
-                    { label: '2xx', data: data.timeSeries.status_2xx.data, borderColor: 'green', tension: 0.1 },
-                    { label: '4xx', data: data.timeSeries.status_4xx.data, borderColor: 'orange', tension: 0.1 },
-                    { label: '5xx', data: data.timeSeries.status_5xx.data, borderColor: 'red', tension: 0.1 }
-                ],
-                data.timeSeries.status_2xx.labels
-            );
-            
-            if (data.authPolicies) {
-                renderAuthPolicies(data.authPolicies, detailsContent);
-            }
         });
 
         cy.on('tap', function(event){
           if (event.target === cy) {
             detailsPanel.classList.remove('visible');
-            selectedNodeId = null;
           }
         });
 
