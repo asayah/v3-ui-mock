@@ -812,22 +812,11 @@
             <div class="logo-area"><div class="logo-subtitle">SOLO ENTERPRISE FOR</div><div class="logo-main">Istio</div></div>
             <nav class="nav-menu">
                 <a href="index.html" class="nav-item"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
-                <div class="nav-group">
-                    <div class="nav-group-title"><i class="fa-solid fa-arrow-down-up-across-line"></i><span>Traffic</span></div>
-                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
-                </div>
-                <div class="nav-group">
-                    <div class="nav-group-title active"><i class="fa-solid fa-globe"></i><span>Global Services</span></div>
-                    <a href="global-services.html" class="nav-item sub-item active"><i class="fa-solid fa-heart-pulse"></i><span>Health</span></a>
-                    <a href="#" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
-                </div>
-                <div class="nav-group">
-                    <div class="nav-group-title"><i class="fa-solid fa-cubes"></i><span>Resources</span></div>
-                    <a href="resources.html" class="nav-item sub-item"><i class="fa-solid fa-folder-open"></i><span>Browse</span></a>
-                </div>
+                <a href="#" class="nav-item"><i class="fa-solid fa-arrow-down-up-across-line"></i><span>Traffic</span></a>
+                <a href="global-services.html" class="nav-item active"><i class="fa-solid fa-globe"></i><span>Global Services</span></a>
+                <a href="resources.html" class="nav-item"><i class="fa-solid fa-cubes"></i><span>Resources</span></a>
                 <a href="service-graph.html" class="nav-item"><i class="fa-solid fa-diagram-project"></i><span>Service Graph</span></a>
             </nav>
-            <div class="sidebar-footer"><a href="#" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a></div>
         </aside>
 
         <main class="main-content">
@@ -1690,15 +1679,15 @@
                 ],
                 endpoints: [
                     { locality: 'us-east-2', healthy: 2, total: 3, items: [
-                        { name: 'checkout-v1-abcde', locality: 'us-east-2', type: 'pod', status: 'error', healthy: false, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Readiness probe failing' },
-                        { name: 'checkout-v1-pqrst', locality: 'us-east-2', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' },
-                        { name: 'checkout-v1-vwxyz', locality: 'us-east-2', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' }
+                        { name: 'checkout-v1-abcde', locality: 'us-east-2', type: 'pod', status: 'error', healthy: false, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Readiness probe failing', nodeAddress: '10.0.1.45' },
+                        { name: 'checkout-v1-pqrst', locality: 'us-east-2', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready', nodeAddress: '10.0.1.46' },
+                        { name: 'checkout-v1-vwxyz', locality: 'us-east-2', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready', nodeAddress: '10.0.1.47' }
                     ]},
                     { locality: 'us-east-2a', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-abcde', locality: 'us-east-2a', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-abcde', locality: 'us-east-2a', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready', nodeAddress: '10.0.2.12' }
                     ]},
                     { locality: 'us-east-2b', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-pqrst', locality: 'us-east-2b', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-pqrst', locality: 'us-east-2b', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready', nodeAddress: '10.0.2.13' }
                     ]}
                 ]
             },
@@ -1728,11 +1717,11 @@
                 ],
                 endpoints: [
                     { locality: 'ap-south-1', healthy: 1, total: 2, items: [
-                        { name: 'checkout-v1-xyz', locality: 'ap-south-1', type: 'pod', status: 'error', healthy: false, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Stuck terminating (5m)' },
-                        { name: 'checkout-v2-abc', locality: 'ap-south-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Ready' }
+                        { name: 'checkout-v1-xyz', locality: 'ap-south-1', type: 'pod', status: 'error', healthy: false, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Stuck terminating (5m)', nodeAddress: '10.1.5.23' },
+                        { name: 'checkout-v2-abc', locality: 'ap-south-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Ready', nodeAddress: '10.1.5.24' }
                     ]},
                     { locality: 'ap-south-1a', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-def', locality: 'ap-south-1a', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-def', locality: 'ap-south-1a', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'prod' }, podStatus: 'Ready', nodeAddress: '10.1.6.15' }
                     ]}
                 ]
             },
@@ -1764,19 +1753,19 @@
                 ],
                 endpoints: [
                     { locality: 'us-east-1', healthy: 3, total: 3, items: [
-                        { name: 'checkout-v1-abc', locality: 'us-east-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' },
-                        { name: 'checkout-v1-def', locality: 'us-east-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready' },
-                        { name: 'checkout-v1-ghi', locality: 'us-east-1', type: 'pod', status: 'warning', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Liveness probe failing' }
+                        { name: 'checkout-v1-abc', locality: 'us-east-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready', nodeAddress: '10.0.0.10' },
+                        { name: 'checkout-v1-def', locality: 'us-east-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Ready', nodeAddress: '10.0.0.11' },
+                        { name: 'checkout-v1-ghi', locality: 'us-east-1', type: 'pod', status: 'warning', healthy: true, labels: { 'app': 'checkout', 'version': 'v1' }, podStatus: 'Liveness probe failing', nodeAddress: '10.0.0.12' }
                     ]},
                     { locality: 'us-east-1a', healthy: 2, total: 2, items: [
-                        { name: 'checkout-v2-jkl', locality: 'us-east-1a', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' },
-                        { name: 'checkout-v2-mno', locality: 'us-east-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-jkl', locality: 'us-east-1a', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready', nodeAddress: '10.0.1.20' },
+                        { name: 'checkout-v2-mno', locality: 'us-east-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready', nodeAddress: '10.0.1.21' }
                     ]},
                     { locality: 'us-east-1b', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-pqr', locality: 'us-east-1b', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-pqr', locality: 'us-east-1b', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready', nodeAddress: '10.0.1.30' }
                     ]},
                     { locality: 'us-east-1c', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-stu', locality: 'us-east-1c', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-stu', locality: 'us-east-1c', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'version': 'v2' }, podStatus: 'Ready', nodeAddress: '10.0.1.40' }
                     ]}
                 ]
             },
@@ -1805,11 +1794,11 @@
                 ],
                 endpoints: [
                     { locality: 'eu-west-1', healthy: 2, total: 2, items: [
-                        { name: 'checkout-v1-eu1', locality: 'eu-west-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready' },
-                        { name: 'checkout-v1-eu2', locality: 'eu-west-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready' }
+                        { name: 'checkout-v1-eu1', locality: 'eu-west-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready', nodeAddress: '10.2.0.50' },
+                        { name: 'checkout-v1-eu2', locality: 'eu-west-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready', nodeAddress: '10.2.0.51' }
                     ]},
                     { locality: 'eu-west-1a', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-eu1a', locality: 'eu-west-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-eu1a', locality: 'eu-west-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'eu' }, podStatus: 'Ready', nodeAddress: '10.2.1.60' }
                     ]}
                 ]
             },
@@ -1839,14 +1828,14 @@
                 ],
                 endpoints: [
                     { locality: 'ap-northeast-1', healthy: 2, total: 2, items: [
-                        { name: 'checkout-v1-ap1', locality: 'ap-northeast-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' },
-                        { name: 'checkout-v1-ap2', locality: 'ap-northeast-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' }
+                        { name: 'checkout-v1-ap1', locality: 'ap-northeast-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready', nodeAddress: '10.3.0.70' },
+                        { name: 'checkout-v1-ap2', locality: 'ap-northeast-1', type: 'workload', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready', nodeAddress: '10.3.0.71' }
                     ]},
                     { locality: 'ap-northeast-1a', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-ap1a', locality: 'ap-northeast-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-ap1a', locality: 'ap-northeast-1a', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready', nodeAddress: '10.3.1.80' }
                     ]},
                     { locality: 'ap-northeast-1b', healthy: 1, total: 1, items: [
-                        { name: 'checkout-v2-ap1b', locality: 'ap-northeast-1b', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready' }
+                        { name: 'checkout-v2-ap1b', locality: 'ap-northeast-1b', type: 'other', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'region': 'ap' }, podStatus: 'Ready', nodeAddress: '10.3.1.81' }
                     ]}
                 ]
             },
@@ -1874,7 +1863,7 @@
                 ],
                 endpoints: [
                     { locality: 'sa-east-1', healthy: 1, total: 1, items: [
-                        { name: 'checkout-staging-1', locality: 'sa-east-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'staging' }, podStatus: 'Ready' }
+                        { name: 'checkout-staging-1', locality: 'sa-east-1', type: 'pod', status: 'ok', healthy: true, labels: { 'app': 'checkout', 'env': 'staging' }, podStatus: 'Ready', nodeAddress: '10.4.0.90' }
                     ]}
                 ]
             }
@@ -2743,11 +2732,15 @@
                             <th>Name</th>
                             <th>Status</th>
                             <th>Details</th>
+                            <th>Node Address</th>
+                            <th>Cluster Name</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${allFilteredEndpoints.map(item => {
                             const statusText = item.status === 'ok' ? 'OK' : item.status === 'warning' ? 'Warning' : 'Error';
+                            const nodeAddress = item.nodeAddress || `${item.locality}-node-${item.name.split('-').pop()}`;
+                            const clusterName = item.clusterName || '-';
                             return `
                             <tr class="${item.status === 'error' ? 'failing' : ''}">
                                 <td>
@@ -2774,6 +2767,16 @@
                                             }
                                             return `<span class="${statusClass}">${podStatus}</span>`;
                                         })()}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary); font-family: monospace;">
+                                        ${nodeAddress}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.85rem; color: var(--text-primary); font-weight: 500;">
+                                        ${clusterName}
                                     </div>
                                 </td>
                             </tr>
