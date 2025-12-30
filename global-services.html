@@ -74,6 +74,137 @@
             .nav-group-title.active {
                 color: white;
             }
+            .cluster-filter-panel {
+                background-color: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            .filter-bar {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .filter-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                position: relative;
+            }
+            .filter-item-label {
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                white-space: nowrap;
+            }
+            .filter-input-compact {
+                background-color: var(--bg-dark);
+                border: 1px solid var(--border-color);
+                color: var(--text-primary);
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 0.85rem;
+                width: 180px;
+                transition: all 0.2s;
+            }
+            .filter-input-compact:focus {
+                outline: none;
+                border-color: var(--accent);
+            }
+            .filter-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background-color: var(--bg-dark);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 4px 10px;
+                font-size: 0.75rem;
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .filter-badge:hover {
+                background-color: var(--bg-card);
+                border-color: var(--accent);
+            }
+            .filter-badge i {
+                font-size: 0.7rem;
+                opacity: 0.7;
+            }
+            .filter-dropdown {
+                position: relative;
+                display: inline-block;
+            }
+            .filter-dropdown-content {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                margin-top: 5px;
+                background-color: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 8px;
+                min-width: 200px;
+                max-height: 250px;
+                overflow-y: auto;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            .filter-dropdown.active .filter-dropdown-content {
+                display: block;
+            }
+            .filter-dropdown-option {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+                cursor: pointer;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                justify-content: space-between;
+            }
+            .filter-dropdown-option:hover {
+                background-color: var(--bg-dark);
+            }
+            .filter-dropdown-option input[type="checkbox"] {
+                margin: 0;
+                cursor: pointer;
+            }
+            .filter-clear-btn {
+                background: none;
+                border: none;
+                color: var(--text-secondary);
+                cursor: pointer;
+                padding: 4px 8px;
+                font-size: 0.75rem;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            .filter-clear-btn:hover {
+                background-color: var(--bg-dark);
+                color: var(--text-primary);
+            }
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.7;
+                    transform: scale(1.1);
+                }
+            }
+            .status-badge-with-issues {
+                border-color: var(--color-warning) !important;
+                background-color: rgba(245, 158, 11, 0.1) !important;
+            }
+            .status-badge-with-errors {
+                border-color: var(--color-error) !important;
+                background-color: rgba(239, 68, 68, 0.1) !important;
+            }
             </style></head>
 <body>
     <div class="app-container">
@@ -91,30 +222,127 @@
         <main class="main-content">
             <div class="top-bar"><div class="breadcrumbs"><i class="fa-solid fa-globe"></i> &nbsp; / &nbsp; <span>Global Services</span></div></div>
 
+            <div class="cluster-filter-panel" style="margin-bottom: 20px;">
+                <div class="cluster-slider-header" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="font-size: 1.2rem; font-weight: 600;">Filters</h2>
+                    <button class="filter-clear-btn" id="clear-filters" style="display: none;">
+                        <i class="fa-solid fa-xmark"></i> Clear Filters
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-secondary); font-size: 0.85rem;"></i>
+                        <input type="text" id="filter-service-name" class="filter-input-compact" placeholder="Search service name...">
+                    </div>
+                    <div class="filter-item">
+                        <span class="filter-item-label">Status:</span>
+                        <div class="filter-dropdown" id="filter-status-dropdown">
+                            <button class="filter-badge" id="filter-status-badge" style="position: relative;">
+                                <span>All Status</span>
+                                <span id="status-error-indicator" style="background-color: var(--color-error); color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; margin-left: 6px; animation: pulse 2s infinite;" title="1 service with errors">1</span>
+                                <span id="status-warning-indicator" style="background-color: var(--color-warning); color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; margin-left: 4px;" title="3 services with warnings">3</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-dropdown-content">
+                                <div class="filter-dropdown-option">
+                                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                                        <input type="checkbox" id="status-healthy" value="healthy">
+                                        <label for="status-healthy" style="cursor: pointer; margin: 0; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-check text-success"></i> Healthy</label>
+                                    </div>
+                                    <span class="status-count healthy-count" style="color: var(--text-secondary); font-weight: 500;">9</span>
+                                </div>
+                                <div class="filter-dropdown-option" style="background-color: rgba(245, 158, 11, 0.05); border-left: 3px solid var(--color-warning);">
+                                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                                        <input type="checkbox" id="status-warning" value="warning">
+                                        <label for="status-warning" style="cursor: pointer; margin: 0; display: flex; align-items: center; gap: 6px; font-weight: 600;"><i class="fa-solid fa-triangle-exclamation text-warning"></i> Warning</label>
+                                    </div>
+                                    <span class="status-count warning-count" style="color: var(--color-warning); font-weight: 600;">3</span>
+                                </div>
+                                <div class="filter-dropdown-option" style="background-color: rgba(239, 68, 68, 0.05); border-left: 3px solid var(--color-error);">
+                                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                                        <input type="checkbox" id="status-error" value="error">
+                                        <label for="status-error" style="cursor: pointer; margin: 0; display: flex; align-items: center; gap: 6px; font-weight: 600;"><i class="fa-solid fa-circle-xmark text-error"></i> Error</label>
+                                    </div>
+                                    <span class="status-count error-count" style="color: var(--color-error); font-weight: 600;">1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <span class="filter-item-label">Visibility:</span>
+                        <div class="filter-dropdown" id="filter-visibility-dropdown">
+                            <button class="filter-badge" id="filter-visibility-badge">
+                                <span>All Visibility</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-dropdown-content">
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="visibility-global" value="Global">
+                                    <label for="visibility-global" style="cursor: pointer; margin: 0;">Global</label>
+                                </div>
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="visibility-segment" value="Segment">
+                                    <label for="visibility-segment" style="cursor: pointer; margin: 0;">Segment</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <span class="filter-item-label">Clusters:</span>
+                        <div class="filter-dropdown" id="filter-clusters-dropdown">
+                            <button class="filter-badge" id="filter-clusters-badge">
+                                <span>All Clusters</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-dropdown-content">
+                                <div style="padding: 8px;">
+                                    <input type="text" id="filter-cluster-search" class="filter-input-compact" placeholder="Search clusters..." style="width: 100%; margin-bottom: 8px;">
+                                </div>
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="cluster-a" value="cluster-a">
+                                    <label for="cluster-a" style="cursor: pointer; margin: 0;">cluster-a</label>
+                                </div>
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="cluster-b" value="cluster-b">
+                                    <label for="cluster-b" style="cursor: pointer; margin: 0;">cluster-b</label>
+                                </div>
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="cluster-mgmt" value="mgmt-cluster">
+                                    <label for="cluster-mgmt" style="cursor: pointer; margin: 0;">mgmt-cluster</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <span class="filter-item-label">Segments:</span>
+                        <div class="filter-dropdown" id="filter-segments-dropdown">
+                            <button class="filter-badge" id="filter-segments-badge">
+                                <span>All Segments</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="filter-dropdown-content">
+                                <div style="padding: 8px;">
+                                    <input type="text" id="filter-segment-search" class="filter-input-compact" placeholder="Search segments..." style="width: 100%; margin-bottom: 8px;">
+                                </div>
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="segment-team1" value="team1">
+                                    <label for="segment-team1" style="cursor: pointer; margin: 0;">team1</label>
+                                </div>
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="segment-team2" value="team2">
+                                    <label for="segment-team2" style="cursor: pointer; margin: 0;">team2</label>
+                                </div>
+                                <div class="filter-dropdown-option">
+                                    <input type="checkbox" id="segment-pci" value="pci-compliant">
+                                    <label for="segment-pci" style="cursor: pointer; margin: 0;">pci-compliant</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <div class="gs-layout">
-                <aside class="filters-panel">
-                    <div class="filter-group">
-                        <div class="filter-title">Status</div>
-                        <div class="filter-option"><div class="checkbox"></div> Healthy <span class="status-count healthy-count">9</span></div><div class="filter-option"><div class="checkbox checked"></div> Warning <span class="status-count warning-count">3</span></div><div class="filter-option"><div class="checkbox checked"></div> Error <span class="status-count error-count">1</span></div>
-                    </div>
-                    <div class="filter-group">
-                        <div class="filter-title">Visibility</div>
-                        <div class="filter-option"><div class="checkbox checked"></div> Global</div><div class="filter-option"><div class="checkbox"></div> Segment</div>
-                    </div>
-                    <div class="filter-group">
-                        <div class="filter-title">Cluster</div>
-                        <input type="text" class="filter-search" placeholder="Search clusters...">
-                        <div class="filter-option"><div class="checkbox"></div> cluster-a</div><div class="filter-option"><div class="checkbox"></div> cluster-b</div><div class="filter-option"><div class="checkbox"></div> mgmt-cluster</div>
-                    </div>
-                    <div class="filter-group">
-                        <div class="filter-title">Segments</div>
-                        <input type="text" class="filter-search" placeholder="Search segments...">
-                        <div class="filter-option"><div class="checkbox"></div> team1</div><div class="filter-option"><div class="checkbox"></div> team2</div><div class="filter-option"><div class="checkbox"></div> pci-compliant</div>
-                    </div>
-                </aside>
-
-                <div class="data-table-container">
+            <div class="data-table-container">
                     <table class="data-table">
                         <thead>
                             <tr><th>Status</th><th>Global Service</th><th>Visibility</th><th>Locality</th><th>Active Endpoints</th><th>Traffic <span style="font-size: 0.7em;">(15 min)</span></th><th>Status</th><th>Actions</th></tr>
@@ -471,8 +699,67 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
         </main>
     </div>
+    <script>
+        // Filter dropdown toggle functionality
+        document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+            const button = dropdown.querySelector('.filter-badge');
+            const content = dropdown.querySelector('.filter-dropdown-content');
+            
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close other dropdowns
+                document.querySelectorAll('.filter-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('active');
+                });
+                dropdown.classList.toggle('active');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown')) {
+                document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('active'));
+            }
+        });
+
+        // Update status badge to reflect errors and warnings
+        function updateStatusBadge() {
+            const errorCount = parseInt(document.querySelector('.error-count')?.textContent || '0');
+            const warningCount = parseInt(document.querySelector('.warning-count')?.textContent || '0');
+            const statusBadge = document.getElementById('filter-status-badge');
+            const errorIndicator = document.getElementById('status-error-indicator');
+            const warningIndicator = document.getElementById('status-warning-indicator');
+
+            // Show/hide indicators
+            if (errorCount > 0) {
+                errorIndicator.style.display = 'inline-flex';
+                errorIndicator.textContent = errorCount;
+                errorIndicator.title = `${errorCount} service${errorCount > 1 ? 's' : ''} with errors`;
+            } else {
+                errorIndicator.style.display = 'none';
+            }
+
+            if (warningCount > 0) {
+                warningIndicator.style.display = 'inline-flex';
+                warningIndicator.textContent = warningCount;
+                warningIndicator.title = `${warningCount} service${warningCount > 1 ? 's' : ''} with warnings`;
+            } else {
+                warningIndicator.style.display = 'none';
+            }
+
+            // Update badge styling based on issues
+            statusBadge.classList.remove('status-badge-with-errors', 'status-badge-with-issues');
+            if (errorCount > 0) {
+                statusBadge.classList.add('status-badge-with-errors');
+            } else if (warningCount > 0) {
+                statusBadge.classList.add('status-badge-with-issues');
+            }
+        }
+
+        // Initialize on page load
+        updateStatusBadge();
+    </script>
 </body>
 </html>

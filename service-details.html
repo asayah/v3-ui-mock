@@ -1328,6 +1328,80 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="details-grid">
+                        <div class="card">
+                            <div class="card-top-header">
+                                <h3>Outlier Detection</h3>
+                                <button class="time-dropdown" style="font-size: 0.8rem;">Last 30 mins <i class="fa-solid fa-chevron-down"></i></button>
+                            </div>
+                            <div style="padding: 15px 20px 0 20px;">
+                                <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-error); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">Outliers Detected</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">2</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">Anomalies</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">5</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                                        <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
+                                        <span style="color: var(--text-secondary);">Normal</span>
+                                        <span style="color: var(--text-primary); font-weight: 600;">98%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="height: 300px; position: relative; padding: 0 20px 20px 20px;">
+                                <svg viewBox="0 0 800 300" class="chart-svg" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+                                    <!-- Grid lines -->
+                                    <line x1="0" y1="250" x2="800" y2="250" style="stroke:#27272a; stroke-width:1"></line>
+                                    <line x1="0" y1="200" x2="800" y2="200" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="150" x2="800" y2="150" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="100" x2="800" y2="100" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    <line x1="0" y1="50" x2="800" y2="50" style="stroke:#27272a; stroke-width:1; opacity:0.2"></line>
+                                    
+                                    <!-- Y-axis labels -->
+                                    <text x="5" y="255" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">0</text>
+                                    <text x="5" y="205" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">2</text>
+                                    <text x="5" y="155" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">4</text>
+                                    <text x="5" y="105" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">6</text>
+                                    <text x="5" y="55" style="fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif;">8</text>
+                                    
+                                    <!-- Normal baseline (success/green) - stable baseline -->
+                                    <path d="M0,240 L100,240 L200,238 L300,240 L400,242 L500,240 L600,238 L700,240 L800,240" 
+                                          style="fill:none; stroke:var(--color-success); stroke-width:2; opacity:0.5; stroke-dasharray:5,5"></path>
+                                    
+                                    <!-- Anomalies (warning/orange) - occasional spikes -->
+                                    <path d="M0,240 L100,240 L200,200 L300,240 L400,240 L500,180 L600,240 L700,240 L800,240" 
+                                          style="fill:none; stroke:var(--color-warning); stroke-width:2.5; opacity:0.9"></path>
+                                    
+                                    <!-- Outliers (error/red) - significant spikes -->
+                                    <circle cx="200" cy="200" r="6" fill="var(--color-error)" opacity="0.9">
+                                        <title>Outlier at 11:50</title>
+                                    </circle>
+                                    <circle cx="500" cy="180" r="6" fill="var(--color-error)" opacity="0.9">
+                                        <title>Outlier at 12:00</title>
+                                    </circle>
+                                    
+                                    <!-- Anomaly markers (warning) -->
+                                    <circle cx="200" cy="200" r="4" fill="var(--color-warning)" opacity="0.7"></circle>
+                                    <circle cx="500" cy="180" r="4" fill="var(--color-warning)" opacity="0.7"></circle>
+                                </svg>
+                                <div class="chart-x-axis" style="display: flex; justify-content: space-between; padding: 0 20px; margin-top: 5px;">
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:45</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:50</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">11:55</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:00</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:05</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:10</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">12:15</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="backend" class="tab-content">
                     <div class="card">
@@ -1672,6 +1746,21 @@
                     p90: { value: 65, path: 'M0,220 L100,225 L200,220 L300,223 L400,200 L500,210 L600,215 L700,220 L800,218' },
                     p99: { value: 135, path: 'M0,200 L100,205 L200,195 L300,180 L400,160 L500,170 L600,180 L700,190 L800,185' }
                 },
+                outlierData: {
+                    outliers: 2,
+                    anomalies: 5,
+                    normal: 98,
+                    baselinePath: 'M0,240 L100,240 L200,238 L300,240 L400,242 L500,240 L600,238 L700,240 L800,240',
+                    anomalyPath: 'M0,240 L100,240 L200,200 L300,240 L400,240 L500,180 L600,240 L700,240 L800,240',
+                    outlierPoints: [
+                        { x: 200, y: 200, time: '11:50' },
+                        { x: 500, y: 180, time: '12:00' }
+                    ],
+                    anomalyPoints: [
+                        { x: 200, y: 200, time: '11:50' },
+                        { x: 500, y: 180, time: '12:00' }
+                    ]
+                },
                 events: [
                     { time: '12:02', title: 'Failover Complete', desc: 'Traffic shifted from us-east-2 to us-west-2 & eu-central-1', startTime: '12:01:15', endTime: '12:02:30', failoverTime: '12:02:30', failoverFrom: 'us-east-2', failoverTo: 'us-west-2, eu-central-1' },
                     { time: '12:00', title: 'Traffic Spike', desc: 'RPS increased to 580 in us-east-2', startTime: '12:00:00', endTime: '12:01:45' },
@@ -1711,6 +1800,19 @@
                     p90: { value: 75, path: 'M0,215 L100,220 L200,215 L300,218 L400,195 L500,205 L600,210 L700,215 L800,213' },
                     p99: { value: 150, path: 'M0,195 L100,200 L200,190 L300,175 L400,155 L500,165 L600,175 L700,185 L800,180' }
                 },
+                outlierData: {
+                    outliers: 1,
+                    anomalies: 3,
+                    normal: 97,
+                    baselinePath: 'M0,240 L100,240 L200,238 L300,240 L400,242 L500,240 L600,238 L700,240 L800,240',
+                    anomalyPath: 'M0,240 L100,240 L200,210 L300,240 L400,240 L500,240 L600,240 L700,240 L800,240',
+                    outlierPoints: [
+                        { x: 200, y: 210, time: '11:50' }
+                    ],
+                    anomalyPoints: [
+                        { x: 200, y: 210, time: '11:50' }
+                    ]
+                },
                 events: [
                     { time: '12:01', title: 'Failover Initiated', desc: 'Automatic failover policy triggered for ap-south-1', startTime: '12:00:30', endTime: '12:01:15', failoverTime: '12:01:15', failoverFrom: 'ap-south-1', failoverTo: 'ap-south-1a' },
                     { time: '11:59', title: 'Endpoint Degradation', desc: '1/2 endpoints showing issues in ap-south-1', startTime: '11:59:00', endTime: '12:00:15' }
@@ -1746,6 +1848,17 @@
                     p50: { value: 25, path: 'M0,240 L100,242 L200,238 L300,240 L400,235 L500,238 L600,240 L700,235 L800,238' },
                     p90: { value: 60, path: 'M0,220 L100,225 L200,220 L300,223 L400,200 L500,210 L600,215 L700,220 L800,218' },
                     p99: { value: 120, path: 'M0,200 L100,205 L200,195 L300,180 L400,160 L500,170 L600,180 L700,190 L800,185' }
+                },
+                outlierData: {
+                    outliers: 0,
+                    anomalies: 1,
+                    normal: 99,
+                    baselinePath: 'M0,240 L100,240 L200,240 L300,240 L400,242 L500,240 L600,240 L700,240 L800,240',
+                    anomalyPath: 'M0,240 L100,240 L200,240 L300,240 L400,240 L500,240 L600,240 L700,240 L800,240',
+                    outlierPoints: [],
+                    anomalyPoints: [
+                        { x: 400, y: 220, time: '11:58' }
+                    ]
                 },
                 events: [
                     { time: '12:00', title: 'Traffic Normal', desc: 'All endpoints healthy in us-east-1', startTime: '12:00:00', endTime: '12:05:00' },
@@ -1789,6 +1902,15 @@
                     p90: { value: 55, path: 'M0,222 L100,220 L200,218 L300,220 L400,205 L500,215 L600,220 L700,225 L800,220' },
                     p99: { value: 110, path: 'M0,202 L100,200 L200,195 L300,185 L400,165 L500,175 L600,185 L700,195 L800,190' }
                 },
+                outlierData: {
+                    outliers: 0,
+                    anomalies: 0,
+                    normal: 100,
+                    baselinePath: 'M0,240 L100,240 L200,240 L300,240 L400,242 L500,240 L600,240 L700,240 L800,240',
+                    anomalyPath: 'M0,240 L100,240 L200,240 L300,240 L400,240 L500,240 L600,240 L700,240 L800,240',
+                    outlierPoints: [],
+                    anomalyPoints: []
+                },
                 events: [
                     { time: '11:58', title: 'Custom Policy Applied', desc: 'Custom routing policy active in eu-west-1', startTime: '11:58:00' }
                 ],
@@ -1822,6 +1944,17 @@
                     p50: { value: 30, path: 'M0,237 L100,240 L200,235 L300,238 L400,232 L500,235 L600,238 L700,232 L800,235' },
                     p90: { value: 70, path: 'M0,217 L100,220 L200,215 L300,218 L400,200 L500,210 L600,215 L700,220 L800,215' },
                     p99: { value: 140, path: 'M0,197 L100,200 L200,192 L300,178 L400,158 L500,168 L600,178 L700,188 L800,182' }
+                },
+                outlierData: {
+                    outliers: 0,
+                    anomalies: 2,
+                    normal: 98,
+                    baselinePath: 'M0,240 L100,240 L200,240 L300,240 L400,242 L500,240 L600,240 L700,240 L800,240',
+                    anomalyPath: 'M0,240 L100,240 L200,240 L300,240 L400,230 L500,240 L600,240 L700,240 L800,240',
+                    outlierPoints: [],
+                    anomalyPoints: [
+                        { x: 400, y: 230, time: '11:58' }
+                    ]
                 },
                 events: [
                     { time: '11:57', title: 'Zone Preference Active', desc: 'preferZone policy routing traffic in ap-northeast-1', startTime: '11:57:00' }
@@ -1857,6 +1990,15 @@
                     p50: { value: 40, path: 'M0,235 L100,238 L200,232 L300,235 L400,230 L500,233 L600,235 L700,230 L800,233' },
                     p90: { value: 85, path: 'M0,215 L100,220 L200,215 L300,218 L400,200 L500,210 L600,215 L700,220 L800,215' },
                     p99: { value: 160, path: 'M0,195 L100,200 L200,190 L300,175 L400,155 L500,165 L600,175 L700,185 L800,180' }
+                },
+                outlierData: {
+                    outliers: 0,
+                    anomalies: 0,
+                    normal: 100,
+                    baselinePath: 'M0,240 L100,240 L200,240 L300,240 L400,242 L500,240 L600,240 L700,240 L800,240',
+                    anomalyPath: 'M0,240 L100,240 L200,240 L300,240 L400,240 L500,240 L600,240 L700,240 L800,240',
+                    outlierPoints: [],
+                    anomalyPoints: []
                 },
                 events: [
                     { time: '11:55', title: 'Staging Environment', desc: 'Low traffic in staging cluster sa-east-1', startTime: '11:55:00' }
@@ -2246,6 +2388,7 @@
             // Update all charts and data below to be cluster-specific
             updateTrafficChart(cluster);
             updateLatencyChart(cluster);
+            updateOutlierChart(cluster);
             updateEvents(cluster);
             updateEndpoints(cluster);
         }
@@ -2332,6 +2475,94 @@
                     path.setAttribute('d', p.data.path);
                     path.setAttribute('style', `fill:none; stroke:${p.color}; stroke-width:2.5; opacity:0.9`);
                     chartSvg.appendChild(path);
+                });
+            }
+        }
+
+        function updateOutlierChart(cluster) {
+            // Find the outlier detection card by looking for the h3 with "Outlier Detection"
+            const outlierCard = Array.from(document.querySelectorAll('#traffic-source .card')).find(card => {
+                const h3 = card.querySelector('h3');
+                return h3 && h3.textContent.includes('Outlier Detection');
+            });
+            if (!outlierCard || !cluster.outlierData) return;
+
+            // Update legend
+            const legendContainer = outlierCard.querySelector('div[style*="padding: 15px 20px 0 20px"]');
+            if (legendContainer) {
+                legendContainer.innerHTML = `
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                            <div style="width: 12px; height: 12px; background-color: var(--color-error); border-radius: 2px;"></div>
+                            <span style="color: var(--text-secondary);">Outliers Detected</span>
+                            <span style="color: var(--text-primary); font-weight: 600;">${cluster.outlierData.outliers}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                            <div style="width: 12px; height: 12px; background-color: var(--color-warning); border-radius: 2px;"></div>
+                            <span style="color: var(--text-secondary);">Anomalies</span>
+                            <span style="color: var(--text-primary); font-weight: 600;">${cluster.outlierData.anomalies}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                            <div style="width: 12px; height: 12px; background-color: var(--color-success); border-radius: 2px;"></div>
+                            <span style="color: var(--text-secondary);">Normal</span>
+                            <span style="color: var(--text-primary); font-weight: 600;">${cluster.outlierData.normal}%</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Update chart SVG
+            const chartSvg = outlierCard.querySelector('svg.chart-svg');
+            if (chartSvg) {
+                // Clear existing dynamic elements (paths and circles) but keep grid lines and text labels
+                chartSvg.querySelectorAll('path').forEach(el => {
+                    const style = el.getAttribute('style') || '';
+                    if (!style.includes('stroke:#27272a')) {
+                        el.remove();
+                    }
+                });
+                chartSvg.querySelectorAll('circle').forEach(el => el.remove());
+                
+                // Add baseline path (dashed line)
+                const baselinePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                baselinePath.setAttribute('d', cluster.outlierData.baselinePath);
+                baselinePath.setAttribute('style', 'fill:none; stroke:var(--color-success); stroke-width:2; opacity:0.5; stroke-dasharray:5,5');
+                chartSvg.appendChild(baselinePath);
+                
+                // Add anomaly path
+                if (cluster.outlierData.anomalies > 0) {
+                    const anomalyPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    anomalyPath.setAttribute('d', cluster.outlierData.anomalyPath);
+                    anomalyPath.setAttribute('style', 'fill:none; stroke:var(--color-warning); stroke-width:2.5; opacity:0.9');
+                    chartSvg.appendChild(anomalyPath);
+                }
+                
+                // Add outlier points (red circles)
+                cluster.outlierData.outlierPoints.forEach(point => {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', point.x);
+                    circle.setAttribute('cy', point.y);
+                    circle.setAttribute('r', '6');
+                    circle.setAttribute('fill', 'var(--color-error)');
+                    circle.setAttribute('opacity', '0.9');
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    title.textContent = `Outlier at ${point.time}`;
+                    circle.appendChild(title);
+                    chartSvg.appendChild(circle);
+                });
+                
+                // Add anomaly points (orange circles, smaller)
+                cluster.outlierData.anomalyPoints.forEach(point => {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', point.x);
+                    circle.setAttribute('cy', point.y);
+                    circle.setAttribute('r', '4');
+                    circle.setAttribute('fill', 'var(--color-warning)');
+                    circle.setAttribute('opacity', '0.7');
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    title.textContent = `Anomaly at ${point.time}`;
+                    circle.appendChild(title);
+                    chartSvg.appendChild(circle);
                 });
             }
         }
