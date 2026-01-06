@@ -143,6 +143,114 @@
             display: flex;
             gap: 12px;
         }
+        .navigation-toolbar {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 20px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            min-width: 300px;
+        }
+        .navigation-toolbar.visible {
+            display: flex;
+        }
+        .nav-btn {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover:not(:disabled) {
+            background-color: var(--bg-card);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .nav-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0 8px;
+        }
+        .node-highlighted {
+            border-width: 4px !important;
+            border-color: var(--accent) !important;
+            z-index: 10;
+        }
+        .outlier-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--color-error);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 2px solid var(--bg-card);
+            z-index: 100;
+        }
+        .global-service-indicator {
+            border: 2px dashed var(--accent) !important;
+            border-width: 3px !important;
+        }
+        .metrics-toggle {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .metrics-toggle:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .metrics-section {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        .metrics-section.visible {
+            display: block;
+        }
+        .locality-badge {
+            display: inline-block;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            margin: 2px;
+        }
+        .failover-percentage {
+            color: var(--color-warning);
+            font-weight: 600;
+        }
 
         .details-panel {
             font-size: 0.85rem;
@@ -321,11 +429,113 @@
             <div class="graph-container">
                 <div class="graph-top-bar">
                      <div class="breadcrumbs"><i class="fa-solid fa-diagram-project"></i> &nbsp; / &nbsp; <span>Graph</span></div>
+                     <div id="graph-legend" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; display: flex; gap: 16px; flex-wrap: wrap;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-right: 8px;">Nodes:</div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="width: 16px; height: 16px; border: 3px solid var(--color-error); background: #4a1a1a; border-radius: 4px;"></div>
+                            <span>Outlier</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="width: 16px; height: 16px; border: 3px dashed var(--accent); border-radius: 4px;"></div>
+                            <span>Global Service</span>
+                        </div>
+                        <div style="font-weight: 600; color: var(--text-primary); margin-left: 8px; margin-right: 8px;">Edges:</div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <svg width="24" height="4" style="display: block;">
+                                <line x1="0" y1="2" x2="24" y2="2" stroke="var(--color-success)" stroke-width="3" />
+                                <polygon points="20,0 24,2 20,4" fill="var(--color-success)" />
+                            </svg>
+                            <span>Encrypted</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <svg width="24" height="4" style="display: block;">
+                                <line x1="0" y1="2" x2="24" y2="2" stroke="var(--color-warning)" stroke-width="3" stroke-dasharray="4,2" />
+                                <polygon points="20,0 24,2 20,4" fill="var(--color-warning)" />
+                            </svg>
+                            <span>Not Encrypted</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <svg width="24" height="4" style="display: block;">
+                                <line x1="0" y1="2" x2="24" y2="2" stroke="#F59E0B" stroke-width="3.5" />
+                                <polygon points="20,0 24,2 20,4" fill="#F59E0B" />
+                            </svg>
+                            <span>Auth Policy</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <svg width="24" height="4" style="display: block;">
+                                <line x1="0" y1="2" x2="24" y2="2" stroke="var(--color-error)" stroke-width="4" stroke-dasharray="4,2" />
+                                <polygon points="20,0 24,2 20,4" fill="var(--color-error)" />
+                            </svg>
+                            <span>Policy Failure</span>
+                        </div>
+                     </div>
                 </div>
                 <div id="cy"></div>
+                <div id="navigation-toolbar" class="navigation-toolbar">
+                    <button id="nav-prev-btn" class="nav-btn">
+                        <i class="fa-solid fa-chevron-left"></i> Previous
+                    </button>
+                    <div class="nav-info">
+                        <span id="nav-current">1</span> / <span id="nav-total">0</span>
+                    </div>
+                    <button id="nav-next-btn" class="nav-btn">
+                        Next <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
 
             </div>
             <aside class="filter-sidebar">
+                <div class="filter-group">
+                    <div class="filter-title">Start from Service</div>
+                    <input type="text" id="service-selector" class="filter-input" placeholder="Search service to start from...">
+                    <div id="service-suggestions" style="max-height: 200px; overflow-y: auto; margin-top: 8px; display: none; background: var(--bg-dark); border-radius: 6px; padding: 8px;"></div>
+                    <button id="show-outliers-btn" style="background: var(--color-error); color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 8px;">
+                        <i class="fa-solid fa-exclamation-triangle"></i> Show Services with Outliers
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Data Generator</span>
+                        <button id="generate-btn" style="background: var(--accent); color: white; border: none; border-radius: 4px; padding: 4px 12px; font-size: 0.8rem; cursor: pointer;">
+                            Generate
+                        </button>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary);">Number of Services</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" id="min-services" class="filter-input" value="5" min="1" max="50" placeholder="Min" style="flex: 1;">
+                            <input type="number" id="max-services" class="filter-input" value="20" min="5" max="100" placeholder="Max" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary);">Path Length</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" id="min-length" class="filter-input" value="2" min="1" max="5" placeholder="Min" style="flex: 1;">
+                            <input type="number" id="max-length" class="filter-input" value="5" min="2" max="10" placeholder="Max" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary);">Fan In</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" id="min-fan-in" class="filter-input" value="1" min="1" max="5" placeholder="Min" style="flex: 1;">
+                            <input type="number" id="max-fan-in" class="filter-input" value="3" min="1" max="10" placeholder="Max" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary);">Fan Out</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" id="min-fan-out" class="filter-input" value="1" min="1" max="5" placeholder="Min" style="flex: 1;">
+                            <input type="number" id="max-fan-out" class="filter-input" value="4" min="1" max="10" placeholder="Max" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-secondary);">Number of Clusters</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" id="min-clusters" class="filter-input" value="2" min="1" max="10" placeholder="Min" style="flex: 1;">
+                            <input type="number" id="max-clusters" class="filter-input" value="5" min="2" max="20" placeholder="Max" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
                 <div class="filter-group">
                     <div class="filter-title">Search</div>
                     <input type="text" id="search-input" class="filter-input" placeholder="e.g., checkout-service">
@@ -362,55 +572,308 @@
     </div>
 
     <script>
-        const generateTimeSeriesData = () => {
-            const labels = [];
-            const data = [];
-            for (let i = 0; i < 10; i++) {
-                labels.push(`-0m${i*10}s`);
-                data.push(Math.random() * 100);
+        // Regions and zones configuration
+        const regions = [
+            { name: 'us-east', zones: ['us-east-1a', 'us-east-1b', 'us-east-1c'] },
+            { name: 'us-west', zones: ['us-west-2a', 'us-west-2b'] },
+            { name: 'eu-central', zones: ['eu-central-1a', 'eu-central-1b'] },
+            { name: 'ap-south', zones: ['ap-south-1a', 'ap-south-1b'] }
+        ];
+
+        // Service name templates
+        const serviceNames = [
+            'checkout', 'payment', 'inventory', 'catalog', 'user', 'auth', 
+            'order', 'shipping', 'notification', 'analytics', 'search', 
+            'recommendation', 'review', 'cart', 'billing', 'gateway'
+        ];
+
+        const namespaces = ['default', 'payments', 'orders', 'catalog', 'user-management'];
+
+        // Data generator function
+        function generateServiceGraph(numServices, minLength, maxLength, minFanIn, maxFanIn, minFanOut, maxFanOut, minClusters, maxClusters) {
+            const nodes = [];
+            const edges = [];
+            const serviceMap = new Map();
+            const fanInCount = new Map();
+            const fanOutCount = new Map();
+            const clusterMap = new Map();
+            
+            // Generate clusters with regions and zones (use provided range)
+            // Calculate a reasonable number of clusters based on services, but respect min/max
+            const calculatedClusters = Math.max(2, Math.floor(numServices / 8));
+            const numClusters = Math.max(minClusters, Math.min(maxClusters, calculatedClusters));
+            const clusters = [];
+            
+            for (let i = 0; i < numClusters; i++) {
+                const region = regions[i % regions.length];
+                const numZones = Math.floor(Math.random() * region.zones.length) + 1;
+                const selectedZones = region.zones.slice(0, numZones);
+                
+                const clusterId = `cluster-${i + 1}`;
+                const clusterName = `cluster-${String.fromCharCode(97 + i)}`;
+                
+                clusters.push({
+                    id: clusterId,
+                    name: clusterName,
+                    region: region.name,
+                    zones: selectedZones
+                });
+                
+                // Create cluster parent node
+                nodes.push({
+                    data: {
+                        id: clusterId,
+                        label: `${clusterName} (${region.name})`,
+                        type: 'cluster',
+                        region: region.name,
+                        zones: selectedZones
+                    }
+                });
+                
+                clusterMap.set(clusterId, clusters[i]);
             }
-            return { labels, data };
-        };
+            
+            // Add traffic source
+            nodes.push({
+                data: {
+                    id: 'traffic-source',
+                    label: 'Internet Traffic',
+                    type: 'webapp'
+                }
+            });
+            
+            // Generate services with enhanced metadata
+            const services = [];
+            const globalServiceMap = new Map(); // Track global services (same name+namespace across clusters)
+            
+            for (let i = 0; i < numServices; i++) {
+                const serviceName = serviceNames[i % serviceNames.length];
+                const serviceId = `service-${i}`;
+                const cluster = clusters[i % clusters.length];
+                const namespace = namespaces[i % namespaces.length];
+                
+                // Determine if this is part of a global service (30% chance)
+                const isGlobalService = Math.random() < 0.3;
+                const globalServiceKey = `${serviceName}.${namespace}`;
+                
+                if (isGlobalService) {
+                    if (!globalServiceMap.has(globalServiceKey)) {
+                        globalServiceMap.set(globalServiceKey, []);
+                    }
+                    globalServiceMap.get(globalServiceKey).push(serviceId);
+                }
+                
+                // Randomly assign outlier status (15% chance)
+                const hasOutlier = Math.random() < 0.15;
+                
+                const service = {
+                    id: serviceId,
+                    name: `${serviceName}-${i + 1}`,
+                    cluster: cluster.id,
+                    namespace: namespace,
+                    level: 0,
+                    fanIn: 0,
+                    fanOut: 0,
+                    hasOutlier: hasOutlier,
+                    isGlobalService: isGlobalService,
+                    globalServiceKey: isGlobalService ? globalServiceKey : null,
+                    // Traffic metrics (hidden by default, shown on click)
+                    rps: Math.floor(Math.random() * 1000) + 100,
+                    errorRate: hasOutlier ? Math.random() * 0.15 : Math.random() * 0.02,
+                    latency: Math.floor(Math.random() * 100) + 20,
+                    // Auth policies
+                    authPolicies: Math.random() < 0.4 ? [`auth-policy-${i % 3}`] : [],
+                    // Locality failover data
+                    failoverData: hasOutlier ? {
+                        primaryLocality: `${cluster.region}/${cluster.zones[0]}`,
+                        failoverLocalities: [
+                            { locality: `${cluster.region}/${cluster.zones[1] || cluster.zones[0]}`, percentage: 60 },
+                            { locality: `${clusters[(i + 1) % clusters.length].region}/${clusters[(i + 1) % clusters.length].zones[0]}`, percentage: 40 }
+                        ]
+                    } : null
+                };
+                
+                services.push(service);
+                serviceMap.set(serviceId, service);
+                fanInCount.set(serviceId, 0);
+                fanOutCount.set(serviceId, 0);
+                
+                // Create service node
+                nodes.push({
+                    data: {
+                        id: serviceId,
+                        label: service.name,
+                        parent: cluster.id,
+                        type: 'service',
+                        namespace: namespace,
+                        cluster: cluster.name,
+                        region: cluster.region,
+                        zones: cluster.zones,
+                        hasOutlier: hasOutlier,
+                        isGlobalService: isGlobalService,
+                        globalServiceKey: globalServiceKey,
+                        rps: service.rps,
+                        errorRate: service.errorRate,
+                        latency: service.latency,
+                        authPolicies: service.authPolicies,
+                        failoverData: service.failoverData
+                    }
+                });
+            }
+            
+            // Build service graph with constraints
+            const sourceServices = services.slice(0, Math.min(3, Math.floor(numServices * 0.15)));
+            
+            // Connect traffic source to entry services
+            sourceServices.forEach(service => {
+                const percentage = Math.floor(100 / sourceServices.length);
+                const isEncrypted = Math.random() < 0.9; // 90% encrypted from traffic source
+                const hasAuthPolicy = Math.random() < 0.3; // 30% have auth policies
+                
+                edges.push({
+                    data: {
+                        id: `edge-traffic-${service.id}`,
+                        source: 'traffic-source',
+                        target: service.id,
+                        label: `${percentage}%`,
+                        state: 'up',
+                        encrypted: isEncrypted ? 'true' : 'false',
+                        hasAuthPolicy: hasAuthPolicy ? 'true' : 'false',
+                        policyFailure: 'false'
+                    }
+                });
+                service.level = 1;
+            });
+            
+            // Build dependency graph level by level
+            const processed = new Set(sourceServices.map(s => s.id));
+            let currentLevel = sourceServices;
+            let level = 2;
+            
+            while (level <= maxLength && processed.size < numServices) {
+                const nextLevel = [];
+                
+                for (const sourceService of currentLevel) {
+                    if (fanOutCount.get(sourceService.id) >= maxFanOut) continue;
+                    
+                    const remainingServices = services.filter(s => 
+                        !processed.has(s.id) && 
+                        s.id !== sourceService.id &&
+                        fanInCount.get(s.id) < maxFanIn
+                    );
+                    
+                    if (remainingServices.length === 0) continue;
+                    
+                    // Generate random number of connections within min/max fan out range
+                    const availableFanOut = maxFanOut - fanOutCount.get(sourceService.id);
+                    const targetFanOut = Math.floor(Math.random() * (maxFanOut - minFanOut + 1)) + minFanOut;
+                    const numConnections = Math.min(
+                        availableFanOut,
+                        targetFanOut,
+                        remainingServices.length
+                    );
+                    
+                    const selected = [];
+                    for (let i = 0; i < numConnections && remainingServices.length > 0; i++) {
+                        const idx = Math.floor(Math.random() * remainingServices.length);
+                        const target = remainingServices.splice(idx, 1)[0];
+                        selected.push(target);
+                        
+                        // Determine edge properties
+                        const sourceServiceData = serviceMap.get(sourceService.id);
+                        const targetServiceData = serviceMap.get(target.id);
+                        const hasPolicyFailure = Math.random() < 0.1; // 10% chance of policy failure
+                        const isEncrypted = Math.random() < 0.85; // 85% encrypted
+                        const hasAuthPolicy = Math.random() < 0.5; // 50% have auth policies
+                        
+                        // Locality information for edge
+                        const sourceLocality = `${sourceServiceData.cluster}/${sourceServiceData.namespace}`;
+                        const targetLocality = `${targetServiceData.cluster}/${targetServiceData.namespace}`;
+                        
+                        edges.push({
+                            data: {
+                                id: `edge-${sourceService.id}-${target.id}`,
+                                source: sourceService.id,
+                                target: target.id,
+                                state: Math.random() > 0.1 ? 'up' : 'down',
+                                encrypted: isEncrypted ? 'true' : 'false', // String for Cytoscape selector
+                                hasAuthPolicy: hasAuthPolicy ? 'true' : 'false',
+                                policyFailure: hasPolicyFailure ? 'true' : 'false',
+                                authPolicies: hasAuthPolicy ? [`edge-policy-${sourceService.id}-${target.id}`] : [],
+                                sourceLocality: sourceLocality,
+                                targetLocality: targetLocality,
+                                rps: Math.floor(Math.random() * 500) + 50,
+                                errorRate: hasPolicyFailure ? Math.random() * 0.2 : Math.random() * 0.05
+                            }
+                        });
+                        
+                        fanOutCount.set(sourceService.id, fanOutCount.get(sourceService.id) + 1);
+                        fanInCount.set(target.id, fanInCount.get(target.id) + 1);
+                        target.level = level;
+                        
+                        if (!nextLevel.includes(target)) {
+                            nextLevel.push(target);
+                        }
+                        processed.add(target.id);
+                    }
+                }
+                
+                currentLevel = nextLevel;
+                level++;
+            }
+            
+            // Mark high-connectivity nodes as hub nodes
+            const connectionThreshold = 5; // Nodes with more than 5 connections are hubs
+            const nodeConnectionCount = new Map();
+            
+            edges.forEach(edge => {
+                const source = edge.data.source;
+                const target = edge.data.target;
+                nodeConnectionCount.set(source, (nodeConnectionCount.get(source) || 0) + 1);
+                nodeConnectionCount.set(target, (nodeConnectionCount.get(target) || 0) + 1);
+            });
+            
+            // Update nodes with connection counts and hub status
+            nodes.forEach(node => {
+                if (node.data.type === 'service') {
+                    const count = nodeConnectionCount.get(node.data.id) || 0;
+                    node.data.connectionCount = count;
+                    node.data.isHub = count > connectionThreshold;
+                    node.data.collapsed = count > connectionThreshold; // Collapse by default if hub
+                    
+                    // Create abbreviated label for collapsed nodes
+                    if (node.data.collapsed) {
+                        const name = node.data.label;
+                        node.data.abbreviatedLabel = `${name}\n(${count} connections)`;
+                        node.data.originalLabel = name;
+                    }
+                }
+            });
+            
+            // Mark edges as hidden if connected to collapsed hub nodes
+            edges.forEach(edge => {
+                const sourceNode = nodes.find(n => n.data.id === edge.data.source);
+                const targetNode = nodes.find(n => n.data.id === edge.data.target);
+                const sourceCollapsed = sourceNode?.data?.collapsed || false;
+                const targetCollapsed = targetNode?.data?.collapsed || false;
+                
+                // Hide edge if either endpoint is collapsed (unless it's the traffic source)
+                if (edge.data.source !== 'traffic-source' && edge.data.target !== 'traffic-source') {
+                    edge.data.hidden = sourceCollapsed || targetCollapsed;
+                }
+            });
+            
+            return { nodes, edges, clusters };
+        }
 
+        // Initialize with default data
+        let currentData = generateServiceGraph(20, 2, 5, 1, 3, 1, 4, 2, 5);
         const elements = {
-            nodes: [
-                // Traffic Source
-                { data: { id: 'traffic-source', label: 'Internet Traffic', type: 'webapp' } },
-
-                // Cluster parent nodes
-                { data: { id: 'us-east-1', label: 'us-east-1' } },
-                { data: { id: 'us-west-2', label: 'us-west-2' } },
-                { data: { id: 'eu-central-1', label: 'eu-central-1' } },
-
-                // Service nodes
-                { data: { 
-                    id: 'checkout-us-east-1', label: 'checkout (primary)', parent: 'us-east-1', type: 'service-failover',
-                    workloads: [ { id: 'checkout-w1', name: 'checkout-v1-pod1', status: 'down'} ],
-                } },
-                { data: { 
-                    id: 'checkout-us-west-2', label: 'checkout (failover)', parent: 'us-west-2', type: 'service' 
-                } },
-                 { data: { 
-                    id: 'checkout-eu-central-1', label: 'checkout (failover)', parent: 'eu-central-1', type: 'service' 
-                } },
-
-                // Dependent services
-                { data: { id: 'payment-service', label: 'Payment Service', parent: 'us-east-1', type: 'service' } },
-                { data: { id: 'inventory-service', label: 'Inventory Service', parent: 'us-west-2', type: 'service' } },
-
-            ],
-            edges: [
-                // Failover path
-                { data: { source: 'traffic-source', target: 'checkout-us-east-1', label: '0%', state: 'down' } },
-                { data: { source: 'traffic-source', target: 'checkout-us-west-2', label: '60%', state: 'up' } },
-                { data: { source: 'traffic-source', target: 'checkout-eu-central-1', label: '40%', state: 'up' } },
-
-                // Backend service connections
-                { data: { source: 'checkout-us-east-1', target: 'payment-service' } },
-                { data: { source: 'checkout-us-west-2', target: 'inventory-service' } },
-                { data: { source: 'checkout-eu-central-1', target: 'inventory-service' } },
-            ]
+            nodes: currentData.nodes,
+            edges: currentData.edges
         };
+        
+        // Global variable for cy to be accessible
         var cy = cytoscape({
             container: document.getElementById('cy'),
             elements: elements,
@@ -451,9 +914,44 @@
                     }
                 },
                 {
+                    selector: '[type = "cluster"]',
+                    style: {
+                        'background-color': '#1a2332',
+                        'border-color': '#58A6FF',
+                        'border-width': 3,
+                        'shape': 'roundrectangle',
+                        'width': 'label',
+                        'height': 'label',
+                        'padding': '15px'
+                    }
+                },
+                {
                     selector: '[type = "service-failover"]',
                     style: {
                         'border-color': 'var(--color-error)',
+                    }
+                },
+                {
+                    selector: '[hasOutlier = "true"]',
+                    style: {
+                        'border-color': 'var(--color-error)',
+                        'border-width': 4,
+                        'background-color': '#4a1a1a'
+                    }
+                },
+                {
+                    selector: '[isGlobalService = "true"]',
+                    style: {
+                        'border-style': 'dashed',
+                        'border-color': 'var(--accent)',
+                        'border-width': 3
+                    }
+                },
+                {
+                    selector: '[encrypted = "false"]',
+                    style: {
+                        'border-color': 'var(--color-warning)',
+                        'border-width': 3
                     }
                 },
                 {
@@ -473,7 +971,53 @@
                     }
                 },
                 {
-                    selector: 'edge[state = "down"]',
+                    selector: 'edge[hidden = "true"]',
+                    style: {
+                        'opacity': 0,
+                        'display': 'none'
+                    }
+                },
+                // Policy failure has highest priority (red dashed)
+                {
+                    selector: 'edge[policyFailure = "true"]',
+                    style: {
+                        'line-color': 'var(--color-error)',
+                        'target-arrow-color': 'var(--color-error)',
+                        'line-style': 'dashed',
+                        'width': 4
+                    }
+                },
+                // Not encrypted (orange dashed) - but not if policy failure
+                {
+                    selector: 'edge[encrypted = "false"]:not([policyFailure = "true"])',
+                    style: {
+                        'line-color': 'var(--color-warning)',
+                        'target-arrow-color': 'var(--color-warning)',
+                        'line-style': 'dashed',
+                        'width': 3
+                    }
+                },
+                // Has auth policy (orange/yellow solid) - but not if policy failure or not encrypted
+                {
+                    selector: 'edge[hasAuthPolicy = "true"]:not([policyFailure = "true"]):not([encrypted = "false"])',
+                    style: {
+                        'line-color': '#F59E0B',
+                        'target-arrow-color': '#F59E0B',
+                        'width': 3.5
+                    }
+                },
+                // Encrypted (green solid) - default for encrypted traffic
+                {
+                    selector: 'edge[encrypted = "true"]:not([policyFailure = "true"]):not([hasAuthPolicy = "true"])',
+                    style: {
+                        'line-color': 'var(--color-success)',
+                        'target-arrow-color': 'var(--color-success)',
+                        'width': 3
+                    }
+                },
+                // Legacy state selectors (for backward compatibility)
+                {
+                    selector: 'edge[state = "down"]:not([policyFailure = "true"])',
                     style: {
                         'line-color': 'var(--color-error)',
                         'target-arrow-color': 'var(--color-error)',
@@ -481,11 +1025,11 @@
                     }
                 },
                 {
-                    selector: 'edge[state = "up"]',
+                    selector: 'edge[state = "up"]:not([encrypted = "true"]):not([hasAuthPolicy = "true"]):not([encrypted = "false"])',
                     style: {
                         'line-color': 'var(--color-success)',
                         'target-arrow-color': 'var(--color-success)',
-                        'width': 4,
+                        'width': 3,
                     }
                 },
                 {
@@ -496,7 +1040,15 @@
                         'transition-property': 'line-color, target-arrow-color',
                         'transition-duration': '0.3s'
                     }
-                }
+                },
+                {
+                    selector: '.node-highlighted',
+                    style: {
+                        'border-width': 4,
+                        'border-color': 'var(--accent)',
+                        'z-index': 10
+                    }
+                },
             ],
             layout: {
                 name: 'cose',
@@ -513,14 +1065,293 @@
             }
         });
 
+        // Service selector and outlier view
+        const serviceSelector = document.getElementById('service-selector');
+        const serviceSuggestions = document.getElementById('service-suggestions');
+        const showOutliersBtn = document.getElementById('show-outliers-btn');
+        
+        // Service-centric view: expand from a selected service
+        function expandFromService(serviceId) {
+            const serviceNode = cy.getElementById(serviceId);
+            if (!serviceNode || serviceNode.length === 0) return;
+            
+            // Hide all nodes initially
+            cy.nodes().forEach(node => {
+                node.style('display', 'none');
+            });
+            
+            // Show selected service
+            serviceNode.style('display', 'element');
+            
+            // Show upstream (who calls this service)
+            const incomingEdges = serviceNode.incomers('edge');
+            incomingEdges.forEach(edge => {
+                edge.style('display', 'element');
+                const sourceNode = edge.source();
+                sourceNode.style('display', 'element');
+                // Recursively show upstream
+                showUpstream(sourceNode, 3); // Max depth 3
+            });
+            
+            // Show downstream (who this service calls)
+            const outgoingEdges = serviceNode.outgoers('edge');
+            outgoingEdges.forEach(edge => {
+                edge.style('display', 'element');
+                const targetNode = edge.target();
+                targetNode.style('display', 'element');
+                // Recursively show downstream
+                showDownstream(targetNode, 3); // Max depth 3
+            });
+            
+            // Show parent cluster
+            const parent = serviceNode.parent();
+            if (parent && parent.length > 0) {
+                parent.style('display', 'element');
+            }
+            
+            // Center on selected service
+            cy.animate({
+                center: { eles: serviceNode },
+                zoom: 1.5
+            }, {
+                duration: 500
+            });
+            
+            // Navigate to service
+            navigateToNode(serviceId, true);
+        }
+        
+        function showUpstream(node, depth) {
+            if (depth <= 0) return;
+            const incomingEdges = node.incomers('edge');
+            incomingEdges.forEach(edge => {
+                edge.style('display', 'element');
+                const sourceNode = edge.source();
+                sourceNode.style('display', 'element');
+                const parent = sourceNode.parent();
+                if (parent && parent.length > 0) {
+                    parent.style('display', 'element');
+                }
+                showUpstream(sourceNode, depth - 1);
+            });
+        }
+        
+        function showDownstream(node, depth) {
+            if (depth <= 0) return;
+            const outgoingEdges = node.outgoers('edge');
+            outgoingEdges.forEach(edge => {
+                edge.style('display', 'element');
+                const targetNode = edge.target();
+                targetNode.style('display', 'element');
+                const parent = targetNode.parent();
+                if (parent && parent.length > 0) {
+                    parent.style('display', 'element');
+                }
+                showDownstream(targetNode, depth - 1);
+            });
+        }
+        
+        // Show services with outliers
+        function showOutliers() {
+            cy.nodes().forEach(node => {
+                const data = node.data();
+                if (data.hasOutlier === true || data.hasOutlier === 'true') {
+                    node.style('display', 'element');
+                    // Show immediate connections
+                    node.connectedEdges().forEach(edge => {
+                        edge.style('display', 'element');
+                        edge.source().style('display', 'element');
+                        edge.target().style('display', 'element');
+                    });
+                    // Show parent cluster
+                    const parent = node.parent();
+                    if (parent && parent.length > 0) {
+                        parent.style('display', 'element');
+                    }
+                } else {
+                    node.style('display', 'none');
+                }
+            });
+            
+            // Show all edges between visible nodes
+            cy.edges().forEach(edge => {
+                const source = edge.source();
+                const target = edge.target();
+                if (source.style('display') === 'element' && target.style('display') === 'element') {
+                    edge.style('display', 'element');
+                }
+            });
+            
+            // Fit to visible nodes
+            cy.fit(cy.nodes(':visible'), 50);
+        }
+        
+        // Make expandFromService globally accessible
+        window.expandFromService = expandFromService;
+        
+        // Service selector with autocomplete
+        serviceSelector.addEventListener('input', (e) => {
+            const searchText = e.target.value.toLowerCase();
+            if (searchText.length < 2) {
+                serviceSuggestions.style.display = 'none';
+                return;
+            }
+            
+            const matchingServices = cy.nodes('[type = "service"]').filter(node => {
+                return node.data('label').toLowerCase().includes(searchText);
+            });
+            
+            if (matchingServices.length > 0) {
+                serviceSuggestions.innerHTML = matchingServices.slice(0, 10).map(node => {
+                    const data = node.data();
+                    const outlierBadge = data.hasOutlier ? '<span style="color: var(--color-error); margin-left: 8px;">⚠</span>' : '';
+                    const serviceId = node.id();
+                    return `
+                        <div class="service-suggestion-item" data-service-id="${serviceId}" style="padding: 8px; cursor: pointer; border-radius: 4px; margin-bottom: 4px; background: var(--bg-card); border: 1px solid var(--border-color);">
+                            ${data.label} ${outlierBadge}
+                        </div>
+                    `;
+                }).join('');
+                
+                // Add click handlers
+                serviceSuggestions.querySelectorAll('.service-suggestion-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const serviceId = item.getAttribute('data-service-id');
+                        const node = cy.getElementById(serviceId);
+                        expandFromService(serviceId);
+                        serviceSelector.value = node.data('label');
+                        serviceSuggestions.style.display = 'none';
+                    });
+                    item.addEventListener('mouseenter', () => {
+                        item.style.background = 'var(--bg-dark)';
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.style.background = 'var(--bg-card)';
+                    });
+                });
+                
+                serviceSuggestions.style.display = 'block';
+            } else {
+                serviceSuggestions.style.display = 'none';
+            }
+        });
+        
+        showOutliersBtn.addEventListener('click', showOutliers);
+        
+        // Generator controls
+        const generateBtn = document.getElementById('generate-btn');
+        const minServicesInput = document.getElementById('min-services');
+        const maxServicesInput = document.getElementById('max-services');
+        const minLengthInput = document.getElementById('min-length');
+        const maxLengthInput = document.getElementById('max-length');
+        const minFanInInput = document.getElementById('min-fan-in');
+        const maxFanInInput = document.getElementById('max-fan-in');
+        const minFanOutInput = document.getElementById('min-fan-out');
+        const maxFanOutInput = document.getElementById('max-fan-out');
+        const minClustersInput = document.getElementById('min-clusters');
+        const maxClustersInput = document.getElementById('max-clusters');
+        
+        function regenerateGraph() {
+            const minServices = parseInt(minServicesInput.value) || 5;
+            const maxServices = parseInt(maxServicesInput.value) || 20;
+            const minLength = parseInt(minLengthInput.value) || 2;
+            const maxLength = parseInt(maxLengthInput.value) || 5;
+            const minFanIn = parseInt(minFanInInput.value) || 1;
+            const maxFanIn = parseInt(maxFanInInput.value) || 3;
+            const minFanOut = parseInt(minFanOutInput.value) || 1;
+            const maxFanOut = parseInt(maxFanOutInput.value) || 4;
+            const minClusters = parseInt(minClustersInput.value) || 2;
+            const maxClusters = parseInt(maxClustersInput.value) || 5;
+            
+            // Generate random values within ranges
+            const numServices = Math.floor(Math.random() * (maxServices - minServices + 1)) + minServices;
+            const numClusters = Math.floor(Math.random() * (maxClusters - minClusters + 1)) + minClusters;
+            
+            currentData = generateServiceGraph(
+                numServices, 
+                minLength, 
+                maxLength, 
+                minFanIn, 
+                maxFanIn, 
+                minFanOut, 
+                maxFanOut,
+                minClusters,
+                maxClusters
+            );
+            
+            cy.elements().remove();
+            cy.add(currentData.nodes);
+            cy.add(currentData.edges);
+            
+            // Apply initial collapsed state to hub nodes
+            cy.nodes('[isHub = "true"][collapsed = "true"]').forEach(node => {
+                const data = node.data();
+                const connectedEdges = node.connectedEdges();
+                connectedEdges.forEach(edge => {
+                    const sourceNode = cy.getElementById(edge.data('source'));
+                    const targetNode = cy.getElementById(edge.data('target'));
+                    const sourceCollapsed = sourceNode.data('collapsed') === true || sourceNode.data('collapsed') === 'true';
+                    const targetCollapsed = targetNode.data('collapsed') === true || targetNode.data('collapsed') === 'true';
+                    
+                    if (edge.data('source') !== 'traffic-source' && edge.data('target') !== 'traffic-source') {
+                        edge.data('hidden', sourceCollapsed || targetCollapsed);
+                    }
+                });
+            });
+            
+            // Reset navigation
+            resetNavigation();
+            
+            // Update filters
+            updateFilters();
+            
+            // Re-layout
+            cy.layout({
+                name: 'cose',
+                animate: true,
+                idealEdgeLength: 150,
+                nodeRepulsion: 800000,
+                edgeElasticity: 100,
+                nestingFactor: 5,
+                gravity: 80,
+                numIter: 1000,
+                initialTemp: 200,
+                coolingFactor: 0.95,
+                minTemp: 1.0
+            }).run();
+            
+            // By default, show services with outliers (after layout completes)
+            setTimeout(() => {
+                if (typeof showOutliers === 'function') {
+                    showOutliers();
+                }
+            }, 1000);
+        }
+        
+        
+        generateBtn.addEventListener('click', regenerateGraph);
+        
         // Filtering logic
         const searchInput = document.getElementById('search-input');
         const clusterFilters = document.getElementById('cluster-filters');
         const namespaceFilters = document.getElementById('namespace-filters');
         const labelFilters = document.getElementById('label-filters');
         
-        const clusters = [...new Set(cy.nodes().map(n => n.data('parent')))].filter(Boolean);
-        clusterFilters.innerHTML = clusters.map(c => c ? `<label class="checkbox-label"><input type="checkbox" value="${c}" checked> ${c}</label>` : '').join('');
+        function updateFilters() {
+            const clusters = [...new Set(cy.nodes('[type = "cluster"]').map(n => n.id()))];
+            clusterFilters.innerHTML = clusters.map(c => {
+                const node = cy.getElementById(c);
+                const data = node.data();
+                return `<label class="checkbox-label"><input type="checkbox" value="${c}" checked> ${data.label}</label>`;
+            }).join('');
+            
+            const namespaces = [...new Set(cy.nodes('[type = "service"]').map(n => n.data('namespace')))].filter(Boolean);
+            namespaceFilters.innerHTML = namespaces.map(ns => 
+                `<label class="checkbox-label"><input type="checkbox" value="${ns}" checked> ${ns}</label>`
+            ).join('');
+        }
+        
+        updateFilters();
 
 
         const debounce = (fn, delay) => {
@@ -534,23 +1365,31 @@
         const applyFilters = () => {
             const searchText = searchInput.value.toLowerCase();
             const checkedClusters = [...clusterFilters.querySelectorAll('input:checked')].map(cb => cb.value);
+            const checkedNamespaces = [...namespaceFilters.querySelectorAll('input:checked')].map(cb => cb.value);
 
             cy.nodes().forEach(node => {
                 const data = node.data();
-                const isParent = !data.parent;
+                const isCluster = data.type === 'cluster';
+                const isWebapp = data.type === 'webapp';
                 const parentId = data.parent;
 
                 let isVisible = true;
 
+                // Search filter
                 if (searchText && data.label.toLowerCase().indexOf(searchText) === -1) {
-                    isVisible = false;
-                }
-
-                // Show node if its parent cluster is checked, or if it's a parent itself
-                if (parentId) {
-                    if (!checkedClusters.includes(parentId)) {
+                    if (!isCluster && !isWebapp) {
                         isVisible = false;
                     }
+                }
+
+                // Cluster filter
+                if (parentId && !checkedClusters.includes(parentId)) {
+                    isVisible = false;
+                }
+                
+                // Namespace filter
+                if (data.namespace && !checkedNamespaces.includes(data.namespace)) {
+                    isVisible = false;
                 }
                 
                 if (isVisible) {
@@ -564,20 +1403,207 @@
 
         searchInput.addEventListener('keyup', debounce(applyFilters, 300));
         clusterFilters.addEventListener('change', applyFilters);
+        namespaceFilters.addEventListener('change', applyFilters);
 
         const detailsPanel = document.getElementById('details-panel');
         const detailsHeader = document.getElementById('details-header');
         const detailsContent = document.getElementById('details-content');
-
-        cy.on('tap', 'node', function(evt){
-            const node = evt.target;
+        
+        // Navigation state
+        let navigationHistory = [];
+        let currentNavIndex = -1;
+        let currentNodeId = null;
+        const navigationToolbar = document.getElementById('navigation-toolbar');
+        const navPrevBtn = document.getElementById('nav-prev-btn');
+        const navNextBtn = document.getElementById('nav-next-btn');
+        const navCurrent = document.getElementById('nav-current');
+        const navTotal = document.getElementById('nav-total');
+        
+        // Get all navigable nodes (services and clusters, not webapp)
+        function getNavigableNodes() {
+            return cy.nodes().filter(node => {
+                const type = node.data('type');
+                return type === 'service' || type === 'cluster';
+            });
+        }
+        
+        // Update navigation toolbar
+        function updateNavigationToolbar() {
+            const navigableNodes = getNavigableNodes();
+            const total = navigableNodes.length;
+            navTotal.textContent = total;
+            
+            if (navigationHistory.length > 0) {
+                // Ensure currentNavIndex is valid
+                if (currentNavIndex < 0 || currentNavIndex >= navigationHistory.length) {
+                    currentNavIndex = navigationHistory.length - 1;
+                }
+                
+                navCurrent.textContent = currentNavIndex + 1;
+                navPrevBtn.disabled = currentNavIndex === 0;
+                navNextBtn.disabled = currentNavIndex === navigationHistory.length - 1;
+                navigationToolbar.classList.add('visible');
+            } else {
+                navigationToolbar.classList.remove('visible');
+            }
+        }
+        
+        // Navigate to a specific node
+        function navigateToNode(nodeId, addToHistory = true) {
+            const node = cy.getElementById(nodeId);
+            if (!node || node.length === 0) return;
+            
+            // Remove previous highlight
+            cy.nodes().removeClass('node-highlighted');
+            
+            // Add highlight to current node
+            node.addClass('node-highlighted');
+            
+            // Center and zoom to node
+            cy.animate({
+                center: { eles: node },
+                zoom: Math.min(cy.zoom() * 1.2, 2)
+            }, {
+                duration: 300
+            });
+            
+            // Update details panel
             const data = node.data();
+            currentNodeId = nodeId;
             
-            if (!data.type) return; // Don't show panel for parent nodes
+            if (addToHistory) {
+                // Remove any future history if we're navigating from middle
+                if (currentNavIndex < navigationHistory.length - 1) {
+                    navigationHistory = navigationHistory.slice(0, currentNavIndex + 1);
+                }
+                navigationHistory.push(nodeId);
+                currentNavIndex = navigationHistory.length - 1;
+            }
+            
+            updateNodeDetails(node, data);
+            updateNavigationToolbar();
+        }
+        
+        // Update node details in panel
+        function updateNodeDetails(node, data) {
+            if (data.type === 'cluster') {
+                detailsHeader.innerHTML = `<i class="fa-solid fa-server"></i> ${data.label}`;
+                let content = `
+                    <div class="details-section">
+                        <div class="details-section-title">Cluster Information</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                            <div style="margin-bottom: 8px;"><strong>Region:</strong> ${data.region}</div>
+                            <div><strong>Zones:</strong> ${data.zones.join(', ')}</div>
+                        </div>
+                    </div>
+                `;
+                detailsContent.innerHTML = content;
+                detailsPanel.classList.add('visible');
+                return;
+            }
+            
+            if (!data.type || data.type === 'webapp') {
+                if (data.type === 'webapp') {
+                    detailsHeader.innerHTML = `<i class="fa-solid fa-globe"></i> ${data.label}`;
+                    detailsContent.innerHTML = '<div class="details-section"><div style="color: var(--text-secondary);">Traffic source node</div></div>';
+                    detailsPanel.classList.add('visible');
+                }
+                return;
+            }
 
-            detailsHeader.innerHTML = `<i class="fa-solid fa-cube"></i> ${data.label}`;
+            const displayLabel = data.originalLabel || data.label;
+            const outlierBadge = data.hasOutlier ? '<span style="background-color: var(--color-error); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">OUTLIER</span>' : '';
+            const globalServiceBadge = data.isGlobalService ? '<span style="background-color: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">GLOBAL SERVICE</span>' : '';
             
-            let content = '';
+            detailsHeader.innerHTML = `<i class="fa-solid fa-cube"></i> ${displayLabel} ${outlierBadge} ${globalServiceBadge}`;
+            
+            let content = `
+                <div class="details-section">
+                    <div class="details-section-title">Service Information</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                        ${data.namespace ? `<div style="margin-bottom: 8px;"><strong>Namespace:</strong> ${data.namespace}</div>` : ''}
+                        ${data.cluster ? `<div style="margin-bottom: 8px;"><strong>Cluster:</strong> ${data.cluster}</div>` : ''}
+                        ${data.region ? `<div style="margin-bottom: 8px;"><strong>Region:</strong> ${data.region}</div>` : ''}
+                        ${data.zones ? `<div style="margin-bottom: 8px;"><strong>Zones:</strong> <span class="locality-badge">${data.zones.join('</span><span class="locality-badge">')}</span></div>` : ''}
+                        ${data.connectionCount !== undefined ? `<div style="margin-bottom: 8px;"><strong>Connections:</strong> ${data.connectionCount}</div>` : ''}
+                        ${data.isHub ? `<div style="margin-bottom: 8px;"><span style="background-color: var(--color-warning); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">HUB NODE</span></div>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Failover information (if outlier)
+            if (data.hasOutlier && data.failoverData) {
+                content += `
+                    <div class="details-section">
+                        <div class="details-section-title">Failover Information</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                            <div style="margin-bottom: 8px;"><strong>Primary Locality:</strong> <span class="locality-badge">${data.failoverData.primaryLocality}</span></div>
+                            <div style="margin-bottom: 8px;"><strong>Failover Traffic:</strong></div>
+                            ${data.failoverData.failoverLocalities.map(fo => `
+                                <div style="margin-left: 12px; margin-bottom: 4px;">
+                                    <span class="locality-badge">${fo.locality}</span>
+                                    <span class="failover-percentage">${fo.percentage}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Authentication Policies
+            if (data.authPolicies && data.authPolicies.length > 0) {
+                content += `
+                    <div class="details-section">
+                        <div class="details-section-title">Authentication Policies</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                            ${data.authPolicies.map(policy => `
+                                <div style="margin-bottom: 4px; padding: 6px; background: var(--bg-dark); border-radius: 4px;">
+                                    <strong>${policy}</strong>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                content += `
+                    <div class="details-section">
+                        <div class="details-section-title">Authentication Policies</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                            No authentication policies attached
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Metrics (hidden by default)
+            content += `
+                <div class="details-section">
+                    <div class="details-section-title">Traffic Metrics</div>
+                    <button class="metrics-toggle" id="toggle-metrics-btn">
+                        <i class="fa-solid fa-chevron-down"></i> Show Metrics
+                    </button>
+                    <div class="metrics-section" id="metrics-section">
+                        ${data.rps ? `<div style="margin-bottom: 8px;"><strong>RPS:</strong> ${data.rps.toLocaleString()}</div>` : ''}
+                        ${data.errorRate !== undefined ? `<div style="margin-bottom: 8px;"><strong>Error Rate:</strong> ${(data.errorRate * 100).toFixed(2)}%</div>` : ''}
+                        ${data.latency ? `<div style="margin-bottom: 8px;"><strong>Latency:</strong> ${data.latency}ms</div>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            if (data.isHub) {
+                const isCollapsed = data.collapsed === true || data.collapsed === 'true';
+                content += `
+                    <div class="details-section">
+                        <div class="details-section-title">Hub Node Controls</div>
+                        <button id="toggle-expand-btn" style="background: var(--accent); color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                            <i class="fa-solid fa-${isCollapsed ? 'expand' : 'compress'}"></i> ${isCollapsed ? 'Expand' : 'Collapse'} Connections
+                        </button>
+                        <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-secondary);">
+                            ${isCollapsed ? 'Click to expand and see all connections' : 'Click to collapse and reduce visual clutter'}
+                        </div>
+                    </div>
+                `;
+            }
 
              if (data.workloads) {
                 content += `
@@ -597,14 +1623,217 @@
 
             detailsContent.innerHTML = content;
             detailsPanel.classList.add('visible');
+            
+            // Add metrics toggle handler
+            const toggleMetricsBtn = document.getElementById('toggle-metrics-btn');
+            const metricsSection = document.getElementById('metrics-section');
+            if (toggleMetricsBtn && metricsSection) {
+                let metricsVisible = false;
+                toggleMetricsBtn.addEventListener('click', () => {
+                    metricsVisible = !metricsVisible;
+                    metricsSection.classList.toggle('visible', metricsVisible);
+                    toggleMetricsBtn.innerHTML = `<i class="fa-solid fa-chevron-${metricsVisible ? 'up' : 'down'}"></i> ${metricsVisible ? 'Hide' : 'Show'} Metrics`;
+                });
+            }
+            
+            // Add toggle button handler for hub nodes
+            if (data.isHub) {
+                const toggleBtn = document.getElementById('toggle-expand-btn');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => {
+                        toggleNodeExpansion(node);
+                        // Update details panel
+                        const updatedData = node.data();
+                        updateNodeDetails(node, updatedData);
+                    });
+                }
+            }
+        }
+        
+        // Handle edge clicks to show edge-specific information
+        cy.on('tap', 'edge', function(evt) {
+            const edge = evt.target;
+            const data = edge.data();
+            
+            detailsHeader.innerHTML = `<i class="fa-solid fa-arrow-right"></i> Connection Details`;
+            
+            const encryptedBadge = data.encrypted === false ? '<span style="background-color: var(--color-warning); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">NOT ENCRYPTED</span>' : '<span style="background-color: var(--color-success); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">ENCRYPTED</span>';
+            const policyFailureBadge = data.policyFailure ? '<span style="background-color: var(--color-error); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">POLICY FAILURE</span>' : '';
+            
+            let content = `
+                <div class="details-section">
+                    <div class="details-section-title">Connection Information</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                        <div style="margin-bottom: 8px;"><strong>From:</strong> ${cy.getElementById(data.source).data('label')}</div>
+                        <div style="margin-bottom: 8px;"><strong>To:</strong> ${cy.getElementById(data.target).data('label')}</div>
+                        <div style="margin-bottom: 8px;"><strong>Encryption:</strong> ${encryptedBadge}</div>
+                        ${data.sourceLocality ? `<div style="margin-bottom: 8px;"><strong>Source Locality:</strong> <span class="locality-badge">${data.sourceLocality}</span></div>` : ''}
+                        ${data.targetLocality ? `<div style="margin-bottom: 8px;"><strong>Target Locality:</strong> <span class="locality-badge">${data.targetLocality}</span></div>` : ''}
+                        ${policyFailureBadge ? `<div style="margin-bottom: 8px;">${policyFailureBadge}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Auth policies for this edge
+            if (data.hasAuthPolicy && data.authPolicies && data.authPolicies.length > 0) {
+                content += `
+                    <div class="details-section">
+                        <div class="details-section-title">Authentication Policies (Client → Server)</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                            ${data.authPolicies.map(policy => `
+                                <div style="margin-bottom: 4px; padding: 6px; background: var(--bg-dark); border-radius: 4px;">
+                                    <strong>${policy}</strong>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Metrics for edge
+            content += `
+                <div class="details-section">
+                    <div class="details-section-title">Traffic Metrics</div>
+                    <button class="metrics-toggle" id="toggle-edge-metrics-btn">
+                        <i class="fa-solid fa-chevron-down"></i> Show Metrics
+                    </button>
+                    <div class="metrics-section" id="edge-metrics-section">
+                        ${data.rps ? `<div style="margin-bottom: 8px;"><strong>RPS:</strong> ${data.rps.toLocaleString()}</div>` : ''}
+                        ${data.errorRate !== undefined ? `<div style="margin-bottom: 8px;"><strong>Error Rate:</strong> ${(data.errorRate * 100).toFixed(2)}%</div>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            detailsContent.innerHTML = content;
+            detailsPanel.classList.add('visible');
+            
+            // Add metrics toggle handler
+            const toggleEdgeMetricsBtn = document.getElementById('toggle-edge-metrics-btn');
+            const edgeMetricsSection = document.getElementById('edge-metrics-section');
+            if (toggleEdgeMetricsBtn && edgeMetricsSection) {
+                let edgeMetricsVisible = false;
+                toggleEdgeMetricsBtn.addEventListener('click', () => {
+                    edgeMetricsVisible = !edgeMetricsVisible;
+                    edgeMetricsSection.classList.toggle('visible', edgeMetricsVisible);
+                    toggleEdgeMetricsBtn.innerHTML = `<i class="fa-solid fa-chevron-${edgeMetricsVisible ? 'up' : 'down'}"></i> ${edgeMetricsVisible ? 'Hide' : 'Show'} Metrics`;
+                });
+            }
+        });
+        
+        // Navigation button handlers
+        navPrevBtn.addEventListener('click', () => {
+            if (currentNavIndex > 0) {
+                currentNavIndex--;
+                navigateToNode(navigationHistory[currentNavIndex], false);
+            }
+        });
+        
+        navNextBtn.addEventListener('click', () => {
+            if (currentNavIndex < navigationHistory.length - 1) {
+                currentNavIndex++;
+                navigateToNode(navigationHistory[currentNavIndex], false);
+            }
+        });
+
+        // Toggle node collapse/expand
+        function toggleNodeExpansion(node) {
+            const data = node.data();
+            if (!data.isHub) return;
+            
+            const isCollapsed = data.collapsed === true || data.collapsed === 'true';
+            data.collapsed = !isCollapsed;
+            
+            // Update label
+            if (data.collapsed) {
+                data.abbreviatedLabel = `${data.originalLabel || data.label}\n(${data.connectionCount} connections)`;
+            }
+            
+            // Show/hide connected edges
+            const connectedEdges = node.connectedEdges();
+            connectedEdges.forEach(edge => {
+                const sourceNode = cy.getElementById(edge.data('source'));
+                const targetNode = cy.getElementById(edge.data('target'));
+                const sourceCollapsed = sourceNode.data('collapsed') === true || sourceNode.data('collapsed') === 'true';
+                const targetCollapsed = targetNode.data('collapsed') === true || targetNode.data('collapsed') === 'true';
+                
+                // Hide edge if either endpoint is collapsed (unless it's traffic source)
+                if (edge.data('source') !== 'traffic-source' && edge.data('target') !== 'traffic-source') {
+                    edge.data('hidden', sourceCollapsed || targetCollapsed);
+                }
+            });
+            
+            // Update node style
+            node.style({
+                'background-color': data.collapsed ? '#2a3a4a' : '#3B4A5C',
+                'border-color': data.collapsed ? 'var(--accent)' : 'var(--color-warning)',
+                'width': data.collapsed ? 100 : 80,
+                'height': data.collapsed ? 70 : 60,
+                'label': data.collapsed ? 'data(abbreviatedLabel)' : 'data(label)'
+            });
+            
+            cy.style().update();
+        }
+        
+        cy.on('tap', 'node', function(evt){
+            const node = evt.target;
+            const data = node.data();
+            
+            // Toggle expansion for hub nodes on double-click or if collapsed
+            if (data.isHub && (data.collapsed === true || data.collapsed === 'true')) {
+                toggleNodeExpansion(node);
+            }
+            
+            // Only add to navigation if it's a service or cluster
+            if (data.type === 'service' || data.type === 'cluster') {
+                navigateToNode(node.id(), true);
+                
+                // If clicking a service, optionally expand its request path
+                if (data.type === 'service' && evt.originalEvent.detail === 2) {
+                    // Double-click to expand full request path
+                    expandFromService(node.id());
+                }
+            } else if (data.type === 'webapp') {
+                // Show webapp details but don't add to navigation
+                detailsHeader.innerHTML = `<i class="fa-solid fa-globe"></i> ${data.label}`;
+                detailsContent.innerHTML = '<div class="details-section"><div style="color: var(--text-secondary);">Traffic source node</div></div>';
+                detailsPanel.classList.add('visible');
+                cy.nodes().removeClass('node-highlighted');
+            }
         });
 
         cy.on('tap', function(event){
           if (event.target === cy) {
             detailsPanel.classList.remove('visible');
+            cy.nodes().removeClass('node-highlighted');
+            navigationToolbar.classList.remove('visible');
+            currentNodeId = null;
+            currentNavIndex = -1;
           }
         });
+        
+        // Reset navigation when graph is regenerated
+        function resetNavigation() {
+            navigationHistory = [];
+            currentNavIndex = -1;
+            currentNodeId = null;
+            cy.nodes().removeClass('node-highlighted');
+            navigationToolbar.classList.remove('visible');
+        }
 
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            // Only handle if navigation toolbar is visible
+            if (!navigationToolbar.classList.contains('visible')) return;
+            
+            if (e.key === 'ArrowLeft' && !navPrevBtn.disabled) {
+                e.preventDefault();
+                navPrevBtn.click();
+            } else if (e.key === 'ArrowRight' && !navNextBtn.disabled) {
+                e.preventDefault();
+                navNextBtn.click();
+            }
+        });
+        
         // Animate edges
         let offset = 0;
         function animateEdges() {
@@ -616,6 +1845,13 @@
             requestAnimationFrame(animateEdges);
         }
         animateEdges();
+        
+        // Initial view: show outliers by default after layout completes
+        cy.ready(() => {
+            setTimeout(() => {
+                showOutliers();
+            }, 1500);
+        });
     </script>
 </body>
 </html>
